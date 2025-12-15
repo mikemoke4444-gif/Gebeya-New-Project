@@ -54,14 +54,13 @@
         }
         .card:hover { transform: translateY(-5px); }
         
-        .product-img {
-            width: 80px; 
-            height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
+        /* ምስል በኢሞጂ ተተካ */
+        .product-emoji {
+            font-size: 40px; /* የአሞጂው መጠን */
             margin-bottom: 10px;
-            border: 2px solid #ddd;
+            display: block;
         }
+
         .name { font-weight: bold; font-size: 18px; margin-bottom: 5px; display: block;}
         .price { color: var(--primary); font-weight: bold; font-size: 16px; }
         .add-btn {
@@ -258,7 +257,7 @@
 </div>
 
 <script>
-    // --- 1. እዚህ ጋር የቴሌግራም መረጃዎን ያስገቡ (አሁን በትክክል ተስተካክሏል) ---
+    // --- 1. እዚህ ጋር የቴሌግራም መረጃዎን ያስገቡ (ትክክለኛ መረጃ) ---
     const TELEGRAM_BOT_TOKEN = "8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
     const TELEGRAM_CHAT_ID = "5229826685";     
     const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; // ለቦታ መላክ
@@ -271,29 +270,29 @@
 
 
     const products = [
-        { name: "ቡና", price: 1400, unit: "ኪሎ", img: "pexels-maksgelatin-4815899.jpg" },
-        { name: "ስኳር", price: 150, unit: "ኪሎ", img: "Screenshot_20251215_002841_Google.jpg" },
-        { name: "ዶሮ", price: 650, unit: "ሙሉ", img: "Screenshot_20251215_002927_Google.jpg" },
-        { name: "ዘይት", price: 2000, unit: "5 ሊትር", img: "Screenshot_20251215_002311_Google.jpg" },
-        { name: "ሙዝ", price: 60, unit: "ኪሎ", img: "Screenshot_20251215_002417_Google.jpg"},
-        { name: "ሰላጣ", price: 50, unit: "ጥቅል", img: "Screenshot_20251215_113031_Google.jpg" },
-        { name: "ጎመን", price: 50, unit: "ጥቅል", img: "Screenshot_20251215_002521_Google.jpg" },
-        { name: "ቆስጣ", price: 50, unit: "ጥቅል", img: "Screenshot_20251215_002756_Google.jpg" },
-        { name: "ቀይ ሽንኩርት", price: 40, unit: "ኪሎ", img: "Screenshot_20251215_002440_Google.jpg" },
-        { name: "ድንች", price: 40, unit: "ኪሎ", img: "Screenshot_20251215_002607_Google.jpg" },
-        { name: "ቲማቲም", price: 60, unit: "ኪሎ", img: "Screenshot_20251215_002628_Google.jpg" },
-        { name: "ዳይፐር", price: 800, unit: "ፓኬት", img: "Screenshot_20251215_002704_Google.jpg" }, 
+        { name: "ቡና", price: 1400, unit: "ኪሎ", emoji: "☕" },
+        { name: "ስኳር", price: 150, unit: "ኪሎ", emoji: "🍚" },
+        { name: "ዶሮ", price: 650, unit: "ሙሉ", emoji: "🐔" },
+        { name: "ዘይት", price: 2000, unit: "5 ሊትር", emoji: "🍾" },
+        { name: "ሙዝ", price: 60, unit: "ኪሎ", emoji: "🍌"},
+        { name: "ሰላጣ", price: 50, unit: "ጥቅል", emoji: "🥗" },
+        { name: "ጎመን", price: 50, unit: "ጥቅል", emoji: "🥬" },
+        { name: "ቆስጣ", price: 50, unit: "ጥቅል", emoji: "🌿" },
+        { name: "ቀይ ሽንኩርት", price: 40, unit: "ኪሎ", emoji: "🧅" },
+        { name: "ድንች", price: 40, unit: "ኪሎ", emoji: "🥔" },
+        { name: "ቲማቲም", price: 60, unit: "ኪሎ", emoji: "🍅" },
+        { name: "ዳይፐር", price: 800, unit: "ፓኬት", emoji: "👶" }, 
     ];
 
     let cart = {};
     const deliveryFee = 100;
 
-    // ምርቶችን መደርደር (በምስል)
+    // ምርቶችን መደርደር (በአሞጂ)
     const productGrid = document.getElementById('productGrid');
     products.forEach((p, index) => {
         productGrid.innerHTML += `
             <div class="card" onclick="addToCart(${index})">
-                <img src="placeholder_images/${p.img}" alt="${p.name}" class="product-img">
+                <span class="product-emoji">${p.emoji}</span>
                 <span class="name">${p.name}</span>
                 <div class="price">${p.price} ብር / ${p.unit}</div>
                 <button class="add-btn">ወደ ቅርጫት ጨምር</button>
@@ -367,7 +366,7 @@
             subtotal += cost;
             // "አትምረጥ" ቁልፍ (አንድ ዕቃ ብቻ ለማስወገድ)
             listHtml += `<li style='margin-bottom: 8px;'>
-                ${p.name} (x${cart[i]}) - <b>${cost} ብር</b> 
+                ${p.emoji} ${p.name} (x${cart[i]}) - <b>${cost} ብር</b> 
                 <button class="remove-btn" onclick="removeFromCart(${i})">አትምረጥ</button>
             </li>`;
         }
@@ -413,7 +412,7 @@
         let subtotal = 0;
         for (let i in cart) {
             subtotal += products[i].price * cart[i];
-            message += `▫️ ${products[i].name} (x${cart[i]}) - ${products[i].price * cart[i]} ብር %0A`;
+            message += `${products[i].emoji} ${products[i].name} (x${cart[i]}) - ${products[i].price * cart[i]} ብር %0A`;
         }
         
         message += `------------------%0A`;
