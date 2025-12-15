@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ገበያ - ቢሾፍቱ</title>
+    <style>
+        /* ቀላልነት፣ ትልቅ ፊደላት እና ክፍት ቦታ (CSS) */
+        :root {
+            --primary: #5D4037; /* ጥቁር ቡናማ/ቡና */
+            --secondary: #FFAB40; /* ብርቱካናማ ለጉልህ ነገሮች */
+            --bg: #F5F5F5; /* ክፍት ቦታ ቀለም */
+            --text: #333;
+        }
+        body {
+            font-family: 'Nyala', 'Abyssinica SIL', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            padding-bottom: 80px;
+            line-height: 1.5; /* ለንባብ ምቹነት */
+        }
+        
+        /* ራስጌ (Header) - ዓይን የሚስብ */
+        header {
+            background-color: var(--primary); /* ጥቁር ቡናማ ዳራ */
+            color: white;
+            padding: 25px 0; /* padding ጨምር */
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        h1 { margin: 0; font-size: 32px; letter-spacing: 2px; }
+        p.subtitle { margin: 5px 0 0; font-size: 18px; opacity: 0.9; }
+        
+        /* የዕቃዎች ዝርዝር */
+        .container { padding: 20px; max-width: 700px; margin: auto; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px; /* ክፍት ቦታ ጨምር */
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .card:hover { transform: translateY(-5px); }
+        
+        .product-img {
+            width: 80px; 
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #ddd;
+        }
+        .name { font-weight: bold; font-size: 18px; margin-bottom: 5px; display: block;}
+        .price { color: var(--primary); font-weight: bold; font-size: 16px; }
+        .add-btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 25px;
+            margin-top: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        /* "አትምረጥ" ቁልፍ (በሞዳል ውስጥ) */
+        .remove-btn {
+            background-color: #D32F2F; /* ቀይ */
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .remove-btn:hover {
+            background-color: #C62828;
+        }
+
+        /* "እዚህ የሌለ" ቁልፍ */
+        .not-listed-area {
+            text-align: center;
+            padding: 20px 0;
+        }
+        #notListedBtn {
+            background-color: #008080; /* Teal */
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* የማዘዣ ፎርም (Modal) */
+        #checkoutModal, #requestModal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            z-index: 2000; 
+            justify-content: center; 
+            align-items: end;
+        }
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 650px;
+            padding: 25px;
+            border-radius: 20px 20px 0 0;
+            box-sizing: border-box;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 18px; /* ትልቅ ፊደል */
+        }
+        .confirm-btn {
+            padding: 18px;
+            font-size: 20px;
+            background-color: #4CAF50; /* አረንጓዴ */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .cart-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            background: white; padding: 10px 15px; 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
+            display: flex; 
+            justify-content: center; /* ይሄ ማዕከል ያደርጋል */
+            align-items: center; 
+            box-sizing: border-box;
+        }
+        
+        /* የቅርጫት ውስጥ ያሉ ቁልፎች ብቻ */
+        .cart-actions {
+            display: flex;
+            gap: 10px; /* በቁልፎቹ መካከል ያለውን ክፍተት ያስተካክላል */
+        }
+        
+        /* አዲስ ቁልፍ፡ ሁሉንም እቃዎች ከቅርጫት ለማውጣት */
+        .unpick-all-btn {
+            background-color: #EF5350; /* ቀይ */
+            color: white;
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 20px; 
+            font-size: 16px; 
+            cursor: pointer;
+            /* ከ Checkout ጋር እንዲመሳሰል ተስተካክሏል */
+        }
+
+        .checkout-btn {
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 20px; 
+            font-size: 16px; 
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>ገበያ (Gebeya)</h1>
+    <p class="subtitle">በቢሾፍቱ ምርጥ ግሮሰሪ - በፍጥነትና በቀላሉ!</p>
+</header>
+
+<div class="container">
+    <div class="grid" id="productGrid">
+        </div>
+
+    <div class="not-listed-area">
+        <button id="notListedBtn" onclick="openRequestModal()">እዚህ የሌለ ነገር አለ? ጠይቅ!</button>
+    </div>
+</div>
+
+<div class="cart-bar" id="cartBar" style="display:none;">
+    <div class="cart-actions">
+        <button class="unpick-all-btn" onclick="clearCart()">🗑️ አትምረጥ (ሁሉንም)</button>
+        <button class="checkout-btn" onclick="openCheckout()">✅ ጨርሰሃል? እዘዝ</button>
+    </div>
+</div>
+
+<div id="checkoutModal" style="display:none;">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeCheckout()">✖ ዝጋ</button>
+        <h2 style="font-size: 24px;">ትዕዛዝ ማረጋገጫ</h2>
+        
+        <div class="summary" id="orderSummary" style="font-size: 18px;"></div>
+        
+        <h3 style="color: #4CAF50;">ለክፍያ አማራጮች</h3>
+        <p style="font-size: 16px;">
+            **ክፍያ:** በCBE ባንክ አካውንት በቅድሚያ።<br>
+            **CBE አካውንት ቁጥር:** **1000446752387**<br>
+            **ስልክ ቁጥር:** **0962636940**
+        </p>
+        <hr>
+
+        <label for="fullName">ሙሉ ስም</label>
+        <input type="text" id="fullName" placeholder="ስምዎን ያስገቡ...">
+        
+        <label for="phone">ስልክ ቁጥር</label>
+        <input type="tel" id="phone" placeholder="09...">
+        
+        <label for="address">ሰፈር / ልዩ ቦታ</label>
+        <input type="text" id="address" placeholder="ምሳሌ፡ ቢሾፍቱ፣ ዋና መንገድ አካባቢ...">
+
+        <hr>
+        <p style="font-size: 14px; color: gray;">* ማረጋገጫውን ሲጫኑ ትዕዛዙ ወዲያውኑ ይላክልናል።</p>
+        
+        <button class="confirm-btn" onclick="sendOrder()">✅ አረጋግጥና ላክ</button>
+    </div>
+</div>
+
+<div id="requestModal" style="display:none;">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeRequestModal()">✖ ዝጋ</button>
+        <h2 style="font-size: 24px;">ያልተዘረዘረ ዕቃ ይጠይቁ</h2>
+        
+        <label for="requestText">የሚፈልጉትን ዕቃ ይጻፉ</label>
+        <textarea id="requestText" rows="4" placeholder="ምሳሌ: 2 ኪሎ ጥሬ ሥጋ፣ የፍየል ወተት፣ ..."></textarea>
+        
+        <label for="requestPhone">ስልክ ቁጥር</label>
+        <input type="tel" id="requestPhone" placeholder="09...">
+
+        <button class="confirm-btn" onclick="sendRequest()">ላክልኝ</button>
+    </div>
+</div>
+
+<script>
+    // --- 1. እዚህ ጋር የቴሌግራም መረጃዎን ያስገቡ (አሁን በትክክል ተስተካክሏል) ---
+    const TELEGRAM_BOT_TOKEN = "8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
+    const TELEGRAM_CHAT_ID = "5229826685";     
+    const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; // ለቦታ መላክ
+    // ------------------------------------------
+
+    // --- የግል መረጃዎች ለትዕዛዝ ማረጋገጫ ---
+    const MY_PHONE_NUMBER = "0962636940";
+    const MY_CBE_ACCOUNT = "1000446752387";
+    // ------------------------------------------
+
+
+    const products = [
+        { name: "ቡና", price: 1400, unit: "ኪሎ", img: "pexels-maksgelatin-4815899.jpg" },
+        { name: "ስኳር", price: 150, unit: "ኪሎ", img: "Screenshot_20251215_002841_Google.jpg" },
+        { name: "ዶሮ", price: 650, unit: "ሙሉ", img: "Screenshot_20251215_002927_Google.jpg" },
+        { name: "ዘይት", price: 2000, unit: "5 ሊትር", img: "Screenshot_20251215_002311_Google.jpg" },
+        { name: "ሙዝ", price: 60, unit: "ኪሎ", img: "Screenshot_20251215_002417_Google.jpg"},
+        { name: "ሰላጣ", price: 50, unit: "ጥቅል", img: "Screenshot_20251215_113031_Google.jpg" },
+        { name: "ጎመን", price: 50, unit: "ጥቅል", img: "Screenshot_20251215_002521_Google.jpg" },
+        { name: "ቆስጣ", price: 50, unit: "ጥቅል", img: "Screenshot_20251215_002756_Google.jpg" },
+        { name: "ቀይ ሽንኩርት", price: 40, unit: "ኪሎ", img: "Screenshot_20251215_002440_Google.jpg" },
+        { name: "ድንች", price: 40, unit: "ኪሎ", img: "Screenshot_20251215_002607_Google.jpg" },
+        { name: "ቲማቲም", price: 60, unit: "ኪሎ", img: "Screenshot_20251215_002628_Google.jpg" },
+        { name: "ዳይፐር", price: 800, unit: "ፓኬት", img: "Screenshot_20251215_002704_Google.jpg" }, 
+    ];
+
+    let cart = {};
+    const deliveryFee = 100;
+
+    // ምርቶችን መደርደር (በምስል)
+    const productGrid = document.getElementById('productGrid');
+    products.forEach((p, index) => {
+        productGrid.innerHTML += `
+            <div class="card" onclick="addToCart(${index})">
+                <img src="placeholder_images/${p.img}" alt="${p.name}" class="product-img">
+                <span class="name">${p.name}</span>
+                <div class="price">${p.price} ብር / ${p.unit}</div>
+                <button class="add-btn">ወደ ቅርጫት ጨምር</button>
+            </div>
+        `;
+    });
+
+    // --- ተግባራት (Functions) ---
+
+    function addToCart(index) {
+        if (!cart[index]) cart[index] = 0;
+        cart[index]++;
+        updateCartUI();
+        if (navigator.vibrate) navigator.vibrate(50);
+    }
+
+    // ከቅርጫት ውስጥ አንድ ዕቃ መቀነስ (ይህ በ Modal ውስጥ ነው የሚጠራው)
+    function removeFromCart(index) {
+        if (cart[index] && cart[index] > 0) {
+            cart[index]--;
+            if (cart[index] === 0) {
+                delete cart[index];
+            }
+            updateCartUI();
+            if (document.getElementById('checkoutModal').style.display === 'flex') {
+                openCheckout(); // Modalን ያድሳል
+            }
+        }
+    }
+    
+    // ሁሉንም ዕቃዎች ከቅርጫት ማስወገድ (ለ "አትምረጥ (ሁሉንም)")
+    function clearCart() {
+        if (Object.keys(cart).length === 0) {
+            alert("ቅርጫቱ አሁንም ባዶ ነው። ምንም የሚወጣ ዕቃ የለም።");
+            return;
+        }
+        
+        if (confirm("ቅርጫትዎን ሙሉ በሙሉ ባዶ ለማድረግ እርግጠኛ ነዎት?")) {
+            cart = {};
+            updateCartUI();
+            alert("✅ ሁሉም የተመረጡ ዕቃዎች ከቅርጫት ወጥተዋል!");
+        }
+    }
+
+
+    function updateCartUI() {
+        let count = 0;
+        for (let i in cart) {
+            count += cart[i];
+        }
+        
+        // ዋጋው ተወግዷል፤ የሚታየው ቁልፎቹ ብቻ ናቸው።
+        if (count > 0) {
+            document.getElementById('cartBar').style.display = 'flex';
+        } else {
+            document.getElementById('cartBar').style.display = 'none';
+        }
+    }
+
+    function openCheckout() {
+        if (Object.keys(cart).length === 0) {
+            alert("ቅርጫትዎ ባዶ ነው። እባክዎ ከመዘዝዎ በፊት ዕቃ ይምረጡ።");
+            return;
+        }
+        
+        let listHtml = "<h3>የተመረጡ ዕቃዎች ዝርዝር:</h3><ul style='list-style: none; padding: 0;'>";
+        let subtotal = 0;
+        for (let i in cart) {
+            let p = products[i];
+            let cost = p.price * cart[i];
+            subtotal += cost;
+            // "አትምረጥ" ቁልፍ (አንድ ዕቃ ብቻ ለማስወገድ)
+            listHtml += `<li style='margin-bottom: 8px;'>
+                ${p.name} (x${cart[i]}) - <b>${cost} ብር</b> 
+                <button class="remove-btn" onclick="removeFromCart(${i})">አትምረጥ</button>
+            </li>`;
+        }
+        listHtml += `</ul><hr style='margin: 10px 0;'>`;
+        listHtml += `<p>የዕቃዎች ድምር: <b>${subtotal} ብር</b></p>`;
+        listHtml += `<p>የዲሊቨሪ (መላኪያ): <b>${deliveryFee} ብር</b></p>`;
+        listHtml += `<h3 style="color:#2E7D32">ጠቅላላ ክፍያ: ${subtotal + deliveryFee} ብር</h3>`;
+        
+        document.getElementById('orderSummary').innerHTML = listHtml;
+        document.getElementById('checkoutModal').style.display = 'flex';
+    }
+
+    function closeCheckout() {
+        document.getElementById('checkoutModal').style.display = 'none';
+    }
+
+    function openRequestModal() {
+        document.getElementById('requestModal').style.display = 'flex';
+    }
+
+    function closeRequestModal() {
+        document.getElementById('requestModal').style.display = 'none';
+    }
+
+    // ትዕዛዝ ወደ ቴሌግራም መላክ
+    function sendOrder() {
+        const name = document.getElementById('fullName').value;
+        const phone = document.getElementById('phone').value;
+        const address = document.getElementById('address').value;
+
+        if(!name || !phone || !address) {
+            alert("እባክዎ ሁሉንም የግል መረጃዎች በትክክል ያስገቡ!");
+            return;
+        }
+
+        let message = `🛒 *አዲስ ዋና ትዕዛዝ (Gebeya)* %0A`;
+        message += `------------------%0A`;
+        message += `👤 ስም: ${name} %0A`;
+        message += `📞 ስልክ: ${phone} %0A`;
+        message += `📍 አድራሻ: ${address} %0A`;
+        message += `------------------%0A`;
+        
+        let subtotal = 0;
+        for (let i in cart) {
+            subtotal += products[i].price * cart[i];
+            message += `▫️ ${products[i].name} (x${cart[i]}) - ${products[i].price * cart[i]} ብር %0A`;
+        }
+        
+        message += `------------------%0A`;
+        message += `🚚 ዲሊቨሪ: 100 ብር %0A`;
+        message += `💰 *ጠቅላላ ክፍያ: ${subtotal + 100} ብር* %0A`;
+        message += `------------------%0A`;
+        message += `**ክፍያ በ CBE (አካውንት: ${MY_CBE_ACCOUNT})**%0A`;
+        message += `**ስልክ (Shop): ${MY_PHONE_NUMBER}**`;
+
+
+        const btn = document.querySelector('#checkoutModal .confirm-btn');
+        btn.innerText = "⏳ በመላክ ላይ...";
+        btn.disabled = true;
+
+        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${message}&parse_mode=Markdown`)
+            .then(response => {
+                if(response.ok) {
+                    alert("✅ ትዕዛዝዎ ተልኳል! ክፍያውን ሲያጠናቅቁ ለቦታ ማረጋገጫ ወዲያውኑ እናገኝዎታለን።");
+                    cart = {}; 
+                    closeCheckout();
+                    updateCartUI();
+                    document.getElementById('cartBar').style.display = 'none';
+                    window.location.href = `https://t.me/${YOUR_TELEGRAM_USERNAME}`;
+                } else {
+                    alert("⚠️ ትዕዛዙን መላክ አልተቻለም።");
+                }
+                btn.innerText = "✅ አረጋግጥና ላክ";
+                btn.disabled = false;
+            })
+            .catch(error => {
+                alert("⚠️ ችግር ተፈጥሯል! እባክዎ ኢንተርኔትዎን ያረጋግጡና ይሞክሩ።");
+                btn.innerText = "✅ አረጋግጥና ላክ";
+                btn.disabled = false;
+            });
+    }
+
+    // የመጠየቂያ መልእክት ወደ ቴሌግራም መላክ
+    function sendRequest() {
+        const text = document.getElementById('requestText').value;
+        const phone = document.getElementById('requestPhone').value;
+
+        if (!text || !phone) {
+            alert("እባክዎ የሚፈልጉትን ዕቃ እና ስልክ ቁጥር ያስገቡ!");
+            return;
+        }
+
+        let message = `❓ *አዲስ የመጠየቂያ መልእክት (ያልተዘረዘረ)* %0A`;
+        message += `------------------%0A`;
+        message += `📞 ስልክ: ${phone} %0A`;
+        message += `📝 ጥያቄ: ${text} %0A`;
+
+        const btn = document.querySelector('#requestModal .confirm-btn');
+        btn.innerText = "⏳ በመላክ ላይ...";
+        btn.disabled = true;
+
+        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${message}&parse_mode=Markdown`)
+            .then(response => {
+                if(response.ok) {
+                    alert("✅ ጥያቄዎ ደርሶናል! በቅርቡ እንደውላለን።");
+                    document.getElementById('requestText').value = '';
+                    document.getElementById('requestPhone').value = '';
+                    closeRequestModal();
+                } else {
+                    alert("⚠️ ጥያቄዎን መላክ አልተቻለም።");
+                }
+                btn.innerText = "ላክልኝ";
+                btn.disabled = false;
+            })
+            .catch(error => {
+                alert("⚠️ ችግር ተፈጥሯል!");
+                btn.innerText = "ላክልኝ";
+                btn.disabled = false;
+            });
+    }
+
+</script>
+
+</body>
+</html>
