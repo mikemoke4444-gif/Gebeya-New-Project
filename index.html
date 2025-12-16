@@ -10,6 +10,7 @@
             --secondary: #FFAB40; /* ብርቱካናማ ለጉልህ ነገሮች */
             --bg: #F5F5F5; /* ክፍት ቦታ ቀለም */
             --text: #333;
+            --count-bg: #4CAF50; /* አረንጓዴ ለቁጥር */
         }
         body {
             font-family: 'Nyala', 'Abyssinica SIL', sans-serif;
@@ -48,6 +49,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             transition: transform 0.2s;
             cursor: pointer;
+            position: relative; /* ለ Count Badge ያስፈልጋል */
         }
         .card:hover { transform: translateY(-5px); }
         
@@ -56,6 +58,23 @@
             margin-bottom: 10px;
             display: block;
         }
+
+        /* --- አዲስ የ Count Badge CSS --- */
+        .item-count-badge {
+            position: absolute;
+            top: -10px; 
+            right: -10px;
+            background-color: var(--count-bg);
+            color: white;
+            border-radius: 50%;
+            padding: 5px 10px;
+            font-size: 16px;
+            font-weight: bold;
+            display: none; /* በመጀመሪያ ይደበቃል */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        /* --- የ Count Badge CSS መጨረሻ --- */
 
         .name { font-weight: bold; font-size: 18px; margin-bottom: 5px; display: block;}
         .price { color: var(--primary); font-weight: bold; font-size: 16px; }
@@ -100,7 +119,6 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         
-        /* *** ለሞባይል የተስተካከለ CSS እዚህ ይጀምራል *** */
         #checkoutModal, #requestModal { 
             display: none; 
             position: fixed; 
@@ -120,13 +138,10 @@
             padding: 25px;
             border-radius: 20px 20px 0 0;
             box-sizing: border-box;
-            /* ለሞባይል የተጨመረ: ከፍታ እና ማሸብለል */
-            max-height: 90vh; /* ከማያ ገጹ 90% ቁመት ይወስዳል */
-            overflow-y: auto; /* ከ90% በላይ ከሆነ ይዘቱ እንዲሸብለል ያደርጋል */
+            max-height: 90vh; 
+            overflow-y: auto; 
             -webkit-overflow-scrolling: touch; 
         }
-        /* *** ለሞባይል የተስተካከለ CSS እዚህ ያበቃል *** */
-        
         input, select, textarea {
             width: 100%;
             padding: 15px;
@@ -258,7 +273,7 @@
 </div>
 
 <script>
-    // ⚠️⚠️⚠️ የቴሌግራም መረጃዎች (በግልጽ የሚታዩ!) - በአዲስ Token ተስተካክሏል! ⚠️⚠️⚠️
+    // ⚠️⚠️⚠️ የቴሌግራም መረጃዎች (በግልጽ የሚታዩ!) ⚠️⚠️⚠️
     const TELEGRAM_BOT_TOKEN = "8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
     const TELEGRAM_CHAT_ID = "5229826685";  
     const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; 
@@ -270,6 +285,8 @@
     // ------------------------------------------
 
     let savedLocation = null; 
+    let cart = {};
+    const deliveryFee = 150; 
 
     const products = [
         // --- ፍራፍሬዎች እና አትክልቶች ---
@@ -315,14 +332,12 @@
     ];
 
 
-    let cart = {};
-    const deliveryFee = 150; 
-
-    // ምርቶችን መደርደር (በአሞጂ)
+    // --- የምርት ዝርዝር መፍጠሪያ (Initial Render) ---
     const productGrid = document.getElementById('productGrid');
     products.forEach((p, index) => {
         productGrid.innerHTML += `
-            <div class="card" onclick="addToCart(${index})">
+            <div class="card" onclick="addToCart(${index})" data-index="${index}">
+                <span class="item-count-badge" id="count-badge-${index}">0</span>
                 <span class="product-emoji">${p.emoji}</span>
                 <span class="name">${p.name}</span>
                 <div class="price">${p.price} ብር / ${p.unit}</div>
@@ -330,6 +345,8 @@
             </div>
         `;
     });
+    // --- የምርት ዝርዝር መፍጠሪያ መጨረሻ ---
+
 
     // --- የቦታ ጥያቄ (Geolocation Logic) ---
     document.addEventListener('DOMContentLoaded', (event) => {
@@ -360,15 +377,30 @@
                 }
             );
         }
+        // ገጹ ሲጫን የካርድ ቆጣሪዎችን አንዴ ያዘምናል
+        updateCardBadges();
     });
 
     // --- ተግባራት (Functions) ---
+
+    // የካርዶችን ብዛት የሚያሳይ ተግባር
+    function updateCardBadges() {
+        products.forEach((p, index) => {
+            const badge = document.getElementById(`count-badge-${index}`);
+            const count = cart[index] || 0;
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'block' : 'none';
+            }
+        });
+    }
 
     // እቃ መጨመር (Add) - በአንድ ጊዜ 1 ይጨምራል
     function addToCart(index) {
         if (!cart[index]) cart[index] = 0;
         cart[index]++;
         updateCartUI();
+        updateCardBadges(); // የካርድ ቆጣሪውን ያዘምናል
         if (navigator.vibrate) navigator.vibrate(50);
     }
 
@@ -380,8 +412,11 @@
                 delete cart[index];
             }
             updateCartUI();
+            updateCardBadges(); // የካርድ ቆጣሪውን ያዘምናል
+
+            // ሞዳሉ ክፍት ከሆነ ያድሰዋል
             if (document.getElementById('checkoutModal').style.display === 'flex') {
-                openCheckout(); // Modalን ያድሳል
+                openCheckout(); 
             }
         }
     }
@@ -395,6 +430,7 @@
         if (confirm("ቅርጫትዎን ሙሉ በሙሉ ባዶ ለማድረግ እርግጠኛ ነዎት?")) {
             cart = {};
             updateCartUI();
+            updateCardBadges(); // የካርድ ቆጣሪውን ያዘምናል
             alert("✅ ሁሉም የተመረጡ ዕቃዎች ከቅርጫት ወጥተዋል!");
         }
     }
@@ -426,6 +462,7 @@
             let p = products[i];
             let cost = p.price * cart[i];
             subtotal += cost;
+            // እዚህ ላይ removeFromCart(i) ተብሎ መጠራቱ 1 ብቻ እንደሚቀንስ ያረጋግጣል
             listHtml += `<li style='margin-bottom: 8px;'>
                 ${p.name} (x${cart[i]}) - <b>${cost} ብር</b> 
                 <button class="remove-btn" onclick="removeFromCart(${i})">አትምረጥ</button>
@@ -487,7 +524,7 @@
         message += `📞 ስልክ: ${phone} %0A`;
         
         if (savedLocation) {
-            // የቴሌግራም ካርታ ሊንክ ይፈጥራል
+            // የቴሌግራም ካርታ ሊንክ ይፈጥራል (የኮዱን ግልጽነት ለመጠበቅ ቋሚውን ኮድ ትተናል)
             const mapLink = `https://www.google.com/maps/search/?api=1&query=$${savedLocation.lat},${savedLocation.lon}`;
             message += `🗺️ *ትክክለኛ ቦታ* (GPS): %0A[ቦታውን በካርታ ላይ እይ](${mapLink})%0A`;
             message += ` (Lat: ${savedLocation.lat}, Lon: ${savedLocation.lon}) %0A`;
@@ -522,12 +559,13 @@
                 cart = {}; 
                 closeCheckout();
                 updateCartUI();
+                updateCardBadges(); // ካርዶችን ወደ 0 ይመልሳል
                 document.getElementById('cartBar').style.display = 'none';
                 
                 window.location.href = `https://t.me/${YOUR_TELEGRAM_USERNAME.replace('@', '')}`; 
             } else {
                 console.error("Telegram API Error Response:", response.status, response.statusText);
-                alert("⚠️ ትዕዛዙን መላክ አልተቻለም። የቴሌግራም Token/Chat ID ትክክል መሆኑን ያረጋግጡ።");
+                alert("⚠️ ትዕዛዙን መላክ አልተቻለም።");
             }
             btn.innerText = "✅ አረጋግጥና ላክ";
             btn.disabled = false;
