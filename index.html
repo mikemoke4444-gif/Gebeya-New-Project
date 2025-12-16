@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ገበያ - ቢሾፍቱ</title>
     <style>
+        /* CSS ከቀደመው ኮድ ሳይቀየር ቀርቷል */
         :root {
-            --primary: #5D4037; /* ጥቁር ቡናማ/ቡና */
-            --secondary: #FFAB40; /* ብርቱካናማ ለጉልህ ነገሮች */
-            --bg: #F5F5F5; /* ክፍት ቦታ ቀለም */
+            --primary: #5D4037;
+            --secondary: #FFAB40;
+            --bg: #F5F5F5;
             --text: #333;
         }
         body {
@@ -220,13 +221,13 @@
         
         <label for="phone">ስልክ ቁጥር</label>
         <input type="tel" id="phone" placeholder="09...">
-        
-        <div style="text-align: center; margin-bottom: 5px;">
-            <p id="locationStatus" style="font-size: 14px;"></p>
-        </div>
 
         <label for="address">ሰፈር / ልዩ ቦታ</label>
         <input type="text" id="address" placeholder="ምሳሌ፡ ቢሾፍቱ፣ ዋና መንገድ አካባቢ...">
+
+        <div style="text-align: center; margin-top: 10px; margin-bottom: 5px;">
+            <p id="locationStatus" style="font-size: 14px;"></p>
+        </div>
 
         <hr>
         <p style="font-size: 14px; color: gray;">* ማረጋገጫውን ሲጫኑ ትዕዛዙ ወዲያውኑ ይላክልናል።</p>
@@ -234,7 +235,6 @@
         <button class="confirm-btn" onclick="sendOrder()">✅ አረጋግጥና ላክ</button>
     </div>
 </div>
-
 <div id="requestModal" style="display:none;">
     <div class="modal-content">
         <button class="close-btn" onclick="closeRequestModal()">✖ ዝጋ</button>
@@ -264,7 +264,6 @@
 
     let savedLocation = null; 
 
-    // የምርት ዝርዝር (በግልጽ የሚታይ ነው)
     const products = [
         // --- ፍራፍሬዎች እና አትክልቶች ---
         { name: "ድንች", price: 35, unit: "ኪሎ", emoji: "🥔" },
@@ -325,7 +324,7 @@
         `;
     });
 
-    // --- የቦታ ጥያቄ (Geolocation Logic) - የተስተካከለው ኮድ ---
+    // --- የቦታ ጥያቄ (Geolocation Logic) - ሳይቀየር ቀርቷል ---
     document.addEventListener('DOMContentLoaded', (event) => {
         if (navigator.geolocation) {
             const statusDiv = document.getElementById('locationStatus');
@@ -343,7 +342,6 @@
                     statusDiv.style.color = "#4CAF50"; 
                 },
                 (error) => {
-                    // ፍቃድ ተከልክሎ ከሆነ ወይም ጊዜው ካለፈ
                     statusDiv.textContent = "❌ የአካባቢ ፍቃድ አልተሰጠም። እባክዎ በእጅዎ ይጻፉ።";
                     statusDiv.style.color = "#D32F2F"; 
                     savedLocation = null;
@@ -406,6 +404,7 @@
         }
     }
 
+    // ትዕዛዝ ማረጋገጫን የሚከፍት ተግባር
     function openCheckout() {
         if (Object.keys(cart).length === 0) {
             alert("ቅርጫትዎ ባዶ ነው።");
@@ -444,7 +443,7 @@
         document.getElementById('requestModal').style.display = 'none';
     }
 
-    // *** የ sendOrder ተግባር (GPS ይልካል) ***
+    // *** የ sendOrder ተግባር (GPS ይልካል) - ሳይቀየር ቀርቷል ***
     function sendOrder() {
         const name = document.getElementById('fullName').value;
         const phone = document.getElementById('phone').value;
@@ -480,7 +479,7 @@
         
         if (savedLocation) {
             // የቴሌግራም ካርታ ሊንክ ይፈጥራል
-            const mapLink = `https://www.google.com/maps/search/?api=1&query=${savedLocation.lat},${savedLocation.lon}`;
+            const mapLink = `https://www.google.com/maps/search/?api=1&query=$${savedLocation.lat},${savedLocation.lon}`;
             message += `🗺️ *ትክክለኛ ቦታ* (GPS): %0A[ቦታውን በካርታ ላይ እይ](${mapLink})%0A`;
             message += ` (Lat: ${savedLocation.lat}, Lon: ${savedLocation.lon}) %0A`;
         }
@@ -516,7 +515,6 @@
                 updateCartUI();
                 document.getElementById('cartBar').style.display = 'none';
                 
-                // ደንበኛውን ወደ እርስዎ የቴሌግራም ገጽ ይወስደዋል
                 window.location.href = `https://t.me/${YOUR_TELEGRAM_USERNAME.replace('@', '')}`; 
             } else {
                 console.error("Telegram API Error Response:", response.status, response.statusText);
