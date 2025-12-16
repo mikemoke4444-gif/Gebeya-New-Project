@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ገበያ - ቢሾፍቱ</title>
     <style>
-        /* CSS ከቀደመው ኮድ ሳይቀየር ቀርቷል */
         :root {
-            --primary: #5D4037;
-            --secondary: #FFAB40;
-            --bg: #F5F5F5;
+            --primary: #5D4037; /* ጥቁር ቡናማ/ቡና */
+            --secondary: #FFAB40; /* ብርቱካናማ ለጉልህ ነገሮች */
+            --bg: #F5F5F5; /* ክፍት ቦታ ቀለም */
             --text: #333;
         }
         body {
@@ -100,7 +99,8 @@
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
+        
+        /* *** ለሞባይል የተስተካከለ CSS እዚህ ይጀምራል *** */
         #checkoutModal, #requestModal { 
             display: none; 
             position: fixed; 
@@ -111,7 +111,7 @@
             background: rgba(0,0,0,0.5); 
             z-index: 2000; 
             justify-content: center; 
-            align-items: end;
+            align-items: flex-end; /* ወደ ግርጌ ያሰልፋል */
         }
         .modal-content {
             background: white;
@@ -120,7 +120,13 @@
             padding: 25px;
             border-radius: 20px 20px 0 0;
             box-sizing: border-box;
+            /* ለሞባይል የተጨመረ: ከፍታ እና ማሸብለል */
+            max-height: 90vh; /* ከማያ ገጹ 90% ቁመት ይወስዳል */
+            overflow-y: auto; /* ከ90% በላይ ከሆነ ይዘቱ እንዲሸብለል ያደርጋል */
+            -webkit-overflow-scrolling: touch; 
         }
+        /* *** ለሞባይል የተስተካከለ CSS እዚህ ያበቃል *** */
+        
         input, select, textarea {
             width: 100%;
             padding: 15px;
@@ -235,6 +241,7 @@
         <button class="confirm-btn" onclick="sendOrder()">✅ አረጋግጥና ላክ</button>
     </div>
 </div>
+
 <div id="requestModal" style="display:none;">
     <div class="modal-content">
         <button class="close-btn" onclick="closeRequestModal()">✖ ዝጋ</button>
@@ -324,7 +331,7 @@
         `;
     });
 
-    // --- የቦታ ጥያቄ (Geolocation Logic) - ሳይቀየር ቀርቷል ---
+    // --- የቦታ ጥያቄ (Geolocation Logic) ---
     document.addEventListener('DOMContentLoaded', (event) => {
         if (navigator.geolocation) {
             const statusDiv = document.getElementById('locationStatus');
@@ -357,6 +364,7 @@
 
     // --- ተግባራት (Functions) ---
 
+    // እቃ መጨመር (Add) - በአንድ ጊዜ 1 ይጨምራል
     function addToCart(index) {
         if (!cart[index]) cart[index] = 0;
         cart[index]++;
@@ -364,15 +372,16 @@
         if (navigator.vibrate) navigator.vibrate(50);
     }
 
+    // እቃ መቀነስ (Remove) - በአንድ ጊዜ 1 ይቀንሳል
     function removeFromCart(index) {
         if (cart[index] && cart[index] > 0) {
-            cart[index]--;
+            cart[index]--; // በአንድ ጊዜ 1 ይቀንሳል
             if (cart[index] === 0) {
                 delete cart[index];
             }
             updateCartUI();
             if (document.getElementById('checkoutModal').style.display === 'flex') {
-                openCheckout(); 
+                openCheckout(); // Modalን ያድሳል
             }
         }
     }
@@ -443,7 +452,7 @@
         document.getElementById('requestModal').style.display = 'none';
     }
 
-    // *** የ sendOrder ተግባር (GPS ይልካል) - ሳይቀየር ቀርቷል ***
+    // *** የ sendOrder ተግባር (GPS ይልካል) ***
     function sendOrder() {
         const name = document.getElementById('fullName').value;
         const phone = document.getElementById('phone').value;
