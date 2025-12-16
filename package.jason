@@ -1,0 +1,8 @@
+{
+  "name": "gebeya-online-store",
+  "version": "1.0.0",
+  "description": "Netlify Functions for Gebeya order processing.",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  }
+}
