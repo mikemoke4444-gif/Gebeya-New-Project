@@ -54,7 +54,7 @@
         }
         .card:hover { transform: translateY(-5px); }
         
-        /* ምስል በኢሞጂ ተተካ */
+        /* ምስል በኢሞጂ ተተካ (NEW/FIXED CSS) */
         .product-emoji {
             font-size: 40px; /* የአሞጂው መጠን */
             margin-bottom: 10px;
@@ -257,8 +257,8 @@
 </div>
 
 <script>
-    // --- 1. እዚህ ጋር የቴሌግራም መረጃዎን ያስገቡ (ትክክለኛ መረጃ) ---
-    const TELEGRAM_BOT_TOKEN = "8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
+    // --- 1. እዚህ ጋር የቴሌግራም መረጃዎን ያስገቡ ---
+    const TELEGRAM_BOT_TOKEN = "8165448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
     const TELEGRAM_CHAT_ID = "5229826685";     
     const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; // ለቦታ መላክ
     // ------------------------------------------
@@ -285,7 +285,7 @@
     ];
 
     let cart = {};
-    const deliveryFee = 100;
+    const deliveryFee = 150; // UPDATED to 150 Birr for your business plan
 
     // ምርቶችን መደርደር (በአሞጂ)
     const productGrid = document.getElementById('productGrid');
@@ -366,7 +366,7 @@
             subtotal += cost;
             // "አትምረጥ" ቁልፍ (አንድ ዕቃ ብቻ ለማስወገድ)
             listHtml += `<li style='margin-bottom: 8px;'>
-                ${p.emoji} ${p.name} (x${cart[i]}) - <b>${cost} ብር</b> 
+                ${p.name} (x${cart[i]}) - <b>${cost} ብር</b> 
                 <button class="remove-btn" onclick="removeFromCart(${i})">አትምረጥ</button>
             </li>`;
         }
@@ -416,8 +416,8 @@
         }
         
         message += `------------------%0A`;
-        message += `🚚 ዲሊቨሪ: 100 ብር %0A`;
-        message += `💰 *ጠቅላላ ክፍያ: ${subtotal + 100} ብር* %0A`;
+        message += `🚚 ዲሊቨሪ: ${deliveryFee} ብር %0A`; // UPDATED
+        message += `💰 *ጠቅላላ ክፍያ: ${subtotal + deliveryFee} ብር* %0A`; // UPDATED
         message += `------------------%0A`;
         message += `**ክፍያ በ CBE (አካውንት: ${MY_CBE_ACCOUNT})**%0A`;
         message += `**ስልክ (Shop): ${MY_PHONE_NUMBER}**`;
