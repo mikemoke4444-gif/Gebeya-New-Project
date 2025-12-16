@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ገበያ - ቢሾፍቱ</title>
     <style>
-        /* [የቀድሞው CSS ኮድ እዚህ ይቀጥላል...] */
         :root {
             --primary: #5D4037; /* ጥቁር ቡናማ/ቡና */
             --secondary: #FFAB40; /* ብርቱካናማ ለጉልህ ነገሮች */
@@ -252,9 +251,8 @@
 </div>
 
 <script>
-    // ⚠️⚠️⚠️ በጣም አስፈላጊ! እነዚህ የእርስዎ የቴሌግራም ምስጢራዊ መረጃዎች ናቸው! ⚠️⚠️⚠️
-    // (እነዚህ መረጃዎች በገጹ ላይ በግልጽ ይታያሉ)
-    const TELEGRAM_BOT_TOKEN = "8165448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
+    // ⚠️⚠️⚠️ የቴሌግራም መረጃዎች (በግልጽ የሚታዩ!) - በአዲስ Token ተስተካክሏል! ⚠️⚠️⚠️
+    const TELEGRAM_BOT_TOKEN = "8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
     const TELEGRAM_CHAT_ID = "5229826685";  
     const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; 
     // ------------------------------------------------------------------
@@ -334,7 +332,6 @@
             statusDiv.style.color = "#FFAB40"; 
             statusDiv.textContent = "⏳ የአካባቢ መረጃዎን በመጠየቅ ላይ...";
             
-            // የቦታውን መላኪያ ጊዜ (timeout) ወደ 20 ሰከንድ አራዝመነዋል።
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     savedLocation = {
@@ -353,8 +350,8 @@
                 },
                 {
                     enableHighAccuracy: true,
-                    timeout: 20000, // ጊዜው ከፍ ብሏል
-                    maximumAge: 60000 // አንድ ደቂቃ ድረስ የቆየ ቦታ ቢሆን ይቀበል
+                    timeout: 20000, 
+                    maximumAge: 60000 
                 }
             );
         }
@@ -447,7 +444,7 @@
         document.getElementById('requestModal').style.display = 'none';
     }
 
-    // *** የ sendOrder ተግባር (Token በግልጽ የተቀመጠበት) ***
+    // *** የ sendOrder ተግባር (GPS ይልካል) ***
     function sendOrder() {
         const name = document.getElementById('fullName').value;
         const phone = document.getElementById('phone').value;
@@ -458,7 +455,7 @@
             return;
         }
         
-        // 1. የትዕዛዝ መረጃዎችን ሰብስቡ
+        // 1. የትዕዛዝ ስሌት
         let cartItems = [];
         let subtotal = 0;
         for (let i in cart) {
@@ -482,8 +479,9 @@
         message += `📞 ስልክ: ${phone} %0A`;
         
         if (savedLocation) {
-            // የቴሌግራም ካርታ ሊንክ ይፈጥራል (አዲስ ቦታ ኮድ)
-            message += `🗺️ *ትክክለኛ ቦታ* (GPS): %0A[ቦታውን በካርታ ላይ እይ](http://google.com/maps?q=${savedLocation.lat},${savedLocation.lon})%0A`;
+            // የቴሌግራም ካርታ ሊንክ ይፈጥራል
+            const mapLink = `https://www.google.com/maps/search/?api=1&query=${savedLocation.lat},${savedLocation.lon}`;
+            message += `🗺️ *ትክክለኛ ቦታ* (GPS): %0A[ቦታውን በካርታ ላይ እይ](${mapLink})%0A`;
             message += ` (Lat: ${savedLocation.lat}, Lon: ${savedLocation.lon}) %0A`;
         }
         
@@ -502,7 +500,7 @@
         message += `**ስልክ (Shop): ${MY_PHONE_NUMBER}**`;
 
 
-        // 3. መልእክቱን ወደ ቴሌግራም ይላኩ (Token በግልጽ ይሄዳል)
+        // 3. መልእክቱን ወደ ቴሌግራም ይላኩ
         const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
 
         const btn = document.querySelector('#checkoutModal .confirm-btn');
@@ -521,20 +519,21 @@
                 // ደንበኛውን ወደ እርስዎ የቴሌግራም ገጽ ይወስደዋል
                 window.location.href = `https://t.me/${YOUR_TELEGRAM_USERNAME.replace('@', '')}`; 
             } else {
-                alert("⚠️ ትዕዛዙን መላክ አልተቻለም። እባክዎ በቴሌግራም ይደውሉ።");
+                console.error("Telegram API Error Response:", response.status, response.statusText);
+                alert("⚠️ ትዕዛዙን መላክ አልተቻለም። የቴሌግራም Token/Chat ID ትክክል መሆኑን ያረጋግጡ።");
             }
             btn.innerText = "✅ አረጋግጥና ላክ";
             btn.disabled = false;
         })
         .catch(error => {
             console.error("Fetch Error:", error);
-            alert("⚠️ የኔትወርክ ወይም የሰርቨር ችግር ተፈጥሯል! እባክዎ ኢንተርኔትዎን ያረጋግጡ ወይም ይደውሉ።");
+            alert("⚠️ የኔትወርክ ችግር ተፈጥሯል! እባክዎ ኢንተርኔትዎን ያረጋግጡ ወይም ይደውሉ።");
             btn.innerText = "✅ አረጋግጥና ላክ";
             btn.disabled = false;
         });
     }
 
-    // የመጠየቂያ መልእክት ወደ ቴሌግራም መላክ (Token በግልጽ የተቀመጠበት)
+    // የመጠየቂያ መልእክት ወደ ቴሌግራም መላክ
     function sendRequest() {
         const text = document.getElementById('requestText').value;
         const phone = document.getElementById('requestPhone').value;
