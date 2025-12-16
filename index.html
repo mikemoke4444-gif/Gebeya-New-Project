@@ -155,6 +155,7 @@
             gap: 10px;
         }
         
+        /* Unpick Button Styling */
         .unpick-all-btn {
             background-color: #EF5350;
             color: white;
@@ -163,6 +164,7 @@
             border-radius: 20px; 
             font-size: 16px; 
             cursor: pointer;
+            user-select: none; /* Long press protection on mobile */
         }
 
         .checkout-btn {
@@ -180,7 +182,7 @@
 <body>
 
 <header>
-    <h1>bishe ገበያ </h1>
+    <h1>ገበያ (Gebeya)</h1>
     <p class="subtitle">በቢሾፍቱ ምርጥ ግሮሰሪ - በፍጥነትና በቀላሉ!</p>
 </header>
 
@@ -195,7 +197,17 @@
 
 <div class="cart-bar" id="cartBar" style="display:none;">
     <div class="cart-actions">
-        <button class="unpick-all-btn" onclick="clearCart()">🗑️ አትምረጥ (ሁሉንም)</button>
+        <button 
+            class="unpick-all-btn" 
+            id="unpickBtn" 
+            onclick="handleUnpickClick()" 
+            onmousedown="startLongPress(event)" 
+            ontouchstart="startLongPress(event)" 
+            onmouseup="endLongPress()" 
+            ontouchend="endLongPress()"
+        >
+            🗑️ አትምረጥ (አንድ)
+        </button>
         <button class="checkout-btn" onclick="openCheckout()">✅ ጨርሰሃል? እዘዝ</button>
     </div>
 </div>
@@ -251,7 +263,7 @@
 </div>
 
 <script>
-    // ⚠️⚠️⚠️ የቴሌግራም መረጃዎች (በግልጽ የሚታዩ!) - በአዲስ Token ተስተካክሏል! ⚠️⚠️⚠️
+    // ⚠️⚠️⚠️ የቴሌግራም መረጃዎች (በግልጽ የሚታዩ!) - የተስተካከለ Token ⚠️⚠️⚠️
     const TELEGRAM_BOT_TOKEN = "8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
     const TELEGRAM_CHAT_ID = "5229826685";  
     const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; 
@@ -263,6 +275,9 @@
     // ------------------------------------------
 
     let savedLocation = null; 
+    let longPressTimer = null;
+    let isLongPress = false;
+
 
     // የምርት ዝርዝር (በግልጽ የሚታይ ነው)
     const products = [
@@ -357,7 +372,68 @@
         }
     });
 
-    // --- ተግባራት (Functions) ---
+    // --- Unpick Long Press Logic ---
+
+    // እቃዎችን አንድ በአንድ የሚቀንስ አዲስ ተግባር
+    function unpickOne() {
+        if (Object.keys(cart).length === 0) {
+            alert("ቅርጫቱ ባዶ ነው።");
+            return;
+        }
+
+        // በመጀመሪያ የተጨመረውን እቃ (ወይም ያለውን ማንኛውንም እቃ) አንድ ይቀንሳል
+        const firstItemIndex = Object.keys(cart)[0];
+        if (firstItemIndex !== undefined) {
+            removeFromCart(parseInt(firstItemIndex));
+            alert("🗑️ አንድ እቃ ከቅርጫት ወጥቷል።");
+        }
+    }
+
+    // ሙሉ ቅርጫቱን የሚያጠፋ ተግባር
+    function clearAllCart() {
+        if (Object.keys(cart).length === 0) {
+            alert("ቅርጫቱ አሁንም ባዶ ነው።");
+            return;
+        }
+        
+        cart = {};
+        updateCartUI();
+        alert("✅ ሁሉም የተመረጡ ዕቃዎች ከቅርጫት ወጥተዋል!");
+        document.getElementById('unpickBtn').innerText = "🗑️ አትምረጥ (አንድ)";
+    }
+
+    // የረጅም ጫና ቆጣሪ ይጀምራል
+    function startLongPress(e) {
+        // የሞባይል ንክኪ ከሆነ ድርጊቱን መከልከል (Prevent default)
+        if (e.type === 'touchstart') {
+            e.preventDefault(); 
+        }
+
+        isLongPress = false;
+        longPressTimer = setTimeout(() => {
+            isLongPress = true;
+            clearAllCart();
+        }, 5000); // 5 ሰከንዶች (5000 ሚ.ሰ)
+    }
+
+    // የረጅም ጫና ቆጣሪ ያቆማል
+    function endLongPress() {
+        clearTimeout(longPressTimer);
+        // ረጅም ጫና ካልሆነ (አጭር ጫና)
+        if (!isLongPress) {
+            // handleUnpickClick()ን መጥራት የለብንም ምክንያቱም አሁን onclick ላይ አስቀምጠናል
+        }
+    }
+
+    // በአጭር ጫና ሲጫን
+    function handleUnpickClick() {
+        if (!isLongPress) {
+            unpickOne();
+        }
+        isLongPress = false; // ለቀጣይ ጫና ዳግም ማዘጋጀት
+    }
+    
+    // --- ቀሪዎቹ ተግባራት ---
 
     function addToCart(index) {
         if (!cart[index]) cart[index] = 0;
@@ -379,30 +455,20 @@
         }
     }
     
-    function clearCart() {
-        if (Object.keys(cart).length === 0) {
-            alert("ቅርጫቱ አሁንም ባዶ ነው።");
-            return;
-        }
-        
-        if (confirm("ቅርጫትዎን ሙሉ በሙሉ ባዶ ለማድረግ እርግጠኛ ነዎት?")) {
-            cart = {};
-            updateCartUI();
-            alert("✅ ሁሉም የተመረጡ ዕቃዎች ከቅርጫት ወጥተዋል!");
-        }
-    }
-
-
     function updateCartUI() {
         let count = 0;
         for (let i in cart) {
             count += cart[i];
         }
         
+        const unpickBtn = document.getElementById('unpickBtn');
+        
         if (count > 0) {
             document.getElementById('cartBar').style.display = 'flex';
+            unpickBtn.innerText = `🗑️ አትምረጥ (የተመረጡ: ${count})`; 
         } else {
             document.getElementById('cartBar').style.display = 'none';
+            unpickBtn.innerText = "🗑️ አትምረጥ (አንድ)";
         }
     }
 
@@ -412,6 +478,7 @@
             return;
         }
         
+        // 2. የትዕዛዝ ማጠቃለያ (Summary) የሚታየውን ዝርዝር በትክክል ማዘጋጀት
         let listHtml = "<h3>የተመረጡ ዕቃዎች ዝርዝር:</h3><ul style='list-style: none; padding: 0;'>";
         let subtotal = 0;
         for (let i in cart) {
