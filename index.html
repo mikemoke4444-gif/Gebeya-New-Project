@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ገበያ - ቢሾፍቱ</title>
     <style>
-        /* CSS ከቀደመው ኮድ ሳይቀየር ቀርቷል */
         :root {
-            --primary: #5D4037;
-            --secondary: #FFAB40;
-            --bg: #F5F5F5;
+            --primary: #5D4037; /* ጥቁር ቡናማ/ቡና */
+            --secondary: #FFAB40; /* ብርቱካናማ ለጉልህ ነገሮች */
+            --bg: #F5F5F5; /* ክፍት ቦታ ቀለም */
             --text: #333;
         }
         body {
@@ -164,7 +163,6 @@
             border-radius: 20px; 
             font-size: 16px; 
             cursor: pointer;
-            user-select: none; /* Long press protection on mobile */
         }
 
         .checkout-btn {
@@ -182,7 +180,7 @@
 <body>
 
 <header>
-    <h1>bishe ገበያ</h1>
+    <h1>ገበያ (Gebeya)</h1>
     <p class="subtitle">በቢሾፍቱ ምርጥ ግሮሰሪ - በፍጥነትና በቀላሉ!</p>
 </header>
 
@@ -197,17 +195,7 @@
 
 <div class="cart-bar" id="cartBar" style="display:none;">
     <div class="cart-actions">
-        <button 
-            class="unpick-all-btn" 
-            id="unpickBtn" 
-            onclick="handleUnpickClick()" 
-            onmousedown="startLongPress(event)" 
-            ontouchstart="startLongPress(event)" 
-            onmouseup="endLongPress()" 
-            ontouchend="endLongPress()"
-        >
-            🗑️ አትምረጥ (አንድ)
-        </button>
+        <button class="unpick-all-btn" onclick="clearCart()">🗑️ አትምረጥ (ሁሉንም)</button>
         <button class="checkout-btn" onclick="openCheckout()">✅ ጨርሰሃል? እዘዝ</button>
     </div>
 </div>
@@ -233,6 +221,10 @@
         <label for="phone">ስልክ ቁጥር</label>
         <input type="tel" id="phone" placeholder="09...">
         
+        <div style="text-align: center; margin-bottom: 5px;">
+            <p id="locationStatus" style="font-size: 14px;"></p>
+        </div>
+
         <label for="address">ሰፈር / ልዩ ቦታ</label>
         <input type="text" id="address" placeholder="ምሳሌ፡ ቢሾፍቱ፣ ዋና መንገድ አካባቢ...">
 
@@ -259,23 +251,20 @@
 </div>
 
 <script>
-    // ⚠️⚠️⚠️ የቴሌግራም መረጃዎች - ቀድሞ ባለው Token ተተክቷል ⚠️⚠️⚠️
-    const TELEGRAM_BOT_TOKEN = "8165448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
-    const TELEGRAM_CHAT_ID = "5229826685";     
+    // ⚠️⚠️⚠️ የቴሌግራም መረጃዎች (በግልጽ የሚታዩ!) - በአዲስ Token ተስተካክሏል! ⚠️⚠️⚠️
+    const TELEGRAM_BOT_TOKEN = "8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
+    const TELEGRAM_CHAT_ID = "5229826685";  
     const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; 
-    // ------------------------------------------
+    // ------------------------------------------------------------------
 
-    // --- የግል መረጃዎች ለትዕዛዝ ማረጋገጫ ---
+    // --- የክፍያ መረጃ ---
     const MY_PHONE_NUMBER = "0962636940";
     const MY_CBE_ACCOUNT = "1000446752387";
     // ------------------------------------------
 
-    let cart = {};
-    const deliveryFee = 150; 
-    let longPressTimer = null;
-    let isLongPress = false;
+    let savedLocation = null; 
 
-
+    // የምርት ዝርዝር (በግልጽ የሚታይ ነው)
     const products = [
         // --- ፍራፍሬዎች እና አትክልቶች ---
         { name: "ድንች", price: 35, unit: "ኪሎ", emoji: "🥔" },
@@ -299,12 +288,12 @@
         // --- ግሮሰሪ እና መጠጦች ---
         { name: "ቡና", price: 1400, unit: "ኪሎ", emoji: "☕" },
         { name: "የወይራ ዘይት", price: 1400, unit: "1 ሊትር", emoji: "🫒" },
-        { name: "ዘይት (ማብሰያ)", price: 1950, unit: "5 ሊትር", emoji: "🍾" }, // Cooking Oil
+        { name: "ዘይት (ማብሰያ)", price: 1950, unit: "5 ሊትር", emoji: "🍾" }, 
         { name: "ስኳር", price: 150, unit: "ኪሎ", emoji: "🍚" }, 
         { name: "ኤልሳ ቆሎ", price: 680, unit: "ኪሎ", emoji: "🥜"},
         { name: "ዱቄት", price: 120, unit: "ኪሎ", emoji: "🌾"},
-        { name: "ፓስታ", price: 100, unit: "ፓኬት", emoji: "🍝"},
-        { name: "ጭማቂ", price: 90, unit: "1 ሊትር", emoji: "🍹"},
+        { name: "ፓስታ", price: 100, unit: "አንድ", emoji: "🍝"}, 
+        { name: "Juice", price: 90, unit: "1 ሊትር", emoji: "🍹"}, 
 
         // --- ስጋ እና ፕሮቲን ---
         { name: "ሥጋ", price: 1200, unit: "ኪሎ", emoji: "🥩" },
@@ -313,12 +302,15 @@
 
         // --- መክሰስ እና ሌሎች ---
         { name: "ላርጎ (ፈሳሽ ሳሙና)", price: 650, unit: "5 ሊትር", emoji: "🧺" }, 
-        { name: "ዳይፐር", price: 800, unit: "ፓኬት", emoji: "👶" }, 
+        { name: "ዳይፐር (Size 5)", price: 650, unit: "ፓኬት", emoji: "👶" }, 
         { name: "ቺፕስ", price: 25, unit: "አንድ", emoji: "🥔" },
         { name: "ቸኮሌት", price: 50, unit: "አንድ", emoji: "🍫" },
-        { name: "ቂቂ ስናክ", price: 20, unit: "አንድ", emoji: "🍟" },
+        { name: "QQ Snack", price: 20, unit: "አንድ", emoji: "🍟" }, 
     ];
 
+
+    let cart = {};
+    const deliveryFee = 150; 
 
     // ምርቶችን መደርደር (በአሞጂ)
     const productGrid = document.getElementById('productGrid');
@@ -333,68 +325,39 @@
         `;
     });
 
-    // --- Unpick Long Press Logic ---
-
-    // እቃዎችን አንድ በአንድ የሚቀንስ አዲስ ተግባር
-    function unpickOne() {
-        const cartKeys = Object.keys(cart);
-        
-        if (cartKeys.length === 0) {
-            alert("ቅርጫቱ ባዶ ነው።");
-            return;
+    // --- የቦታ ጥያቄ (Geolocation Logic) - የተስተካከለው ኮድ ---
+    document.addEventListener('DOMContentLoaded', (event) => {
+        if (navigator.geolocation) {
+            const statusDiv = document.getElementById('locationStatus');
+            statusDiv.style.color = "#FFAB40"; 
+            statusDiv.textContent = "⏳ የአካባቢ መረጃዎን በመጠየቅ ላይ...";
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    savedLocation = {
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    };
+                    document.getElementById('address').value = `GPS Location Acquired.`;
+                    statusDiv.textContent = "✅ ትክክለኛ ቦታ ተቀምጧል!";
+                    statusDiv.style.color = "#4CAF50"; 
+                },
+                (error) => {
+                    // ፍቃድ ተከልክሎ ከሆነ ወይም ጊዜው ካለፈ
+                    statusDiv.textContent = "❌ የአካባቢ ፍቃድ አልተሰጠም። እባክዎ በእጅዎ ይጻፉ።";
+                    statusDiv.style.color = "#D32F2F"; 
+                    savedLocation = null;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 20000, 
+                    maximumAge: 60000 
+                }
+            );
         }
+    });
 
-        // የመጨረሻውን ቁልፍ (Index) ይፈልጉ (በቅርጫት ውስጥ ለመጨረሻ ጊዜ የተጨመረው አይሰራም, ግን ያለውን ከፍተኛውን ቁልፍ ይወስዳል)
-        // ይህንን ለማስተካከል የመጨመር ጊዜን መመዝገብ ያስፈልጋል, ነገር ግን ለአሁን ከፍተኛውን index እንጠቀም።
-        const lastIndex = cartKeys[cartKeys.length - 1]; 
-        
-        if (lastIndex !== undefined) {
-            removeFromCart(parseInt(lastIndex));
-            alert("🗑️ አንድ እቃ ከቅርጫት ወጥቷል።");
-        }
-    }
-
-    // ሙሉ ቅርጫቱን የሚያጠፋ ተግባር
-    function clearAllCart() {
-        if (Object.keys(cart).length === 0) {
-            alert("ቅርጫቱ አሁንም ባዶ ነው።");
-            return;
-        }
-        
-        cart = {};
-        updateCartUI();
-        alert("✅ ሁሉም የተመረጡ ዕቃዎች ከቅርጫት ወጥተዋል!");
-    }
-
-    // የረጅም ጫና ቆጣሪ ይጀምራል
-    function startLongPress(e) {
-        // የሞባይል ንክኪ ከሆነ ድርጊቱን መከልከል (Prevent default)
-        if (e.type === 'touchstart') {
-            e.preventDefault(); 
-        }
-
-        isLongPress = false;
-        longPressTimer = setTimeout(() => {
-            isLongPress = true;
-            clearAllCart();
-        }, 5000); // 5 ሰከንዶች (5000 ሚ.ሰ)
-    }
-
-    // የረጅም ጫና ቆጣሪ ያቆማል
-    function endLongPress() {
-        clearTimeout(longPressTimer);
-        isLongPress = false; // ለቀጣይ ጫና ዳግም ማዘጋጀት
-    }
-
-    // በአጭር ጫና ሲጫን
-    function handleUnpickClick() {
-        if (!isLongPress) {
-            unpickOne();
-        }
-        // isLongPress በ endLongPress() ውስጥ False ይሆናል
-    }
-    
-    // --- ቀሪዎቹ ተግባራት ---
+    // --- ተግባራት (Functions) ---
 
     function addToCart(index) {
         if (!cart[index]) cart[index] = 0;
@@ -416,32 +379,39 @@
         }
     }
     
+    function clearCart() {
+        if (Object.keys(cart).length === 0) {
+            alert("ቅርጫቱ አሁንም ባዶ ነው።");
+            return;
+        }
+        
+        if (confirm("ቅርጫትዎን ሙሉ በሙሉ ባዶ ለማድረግ እርግጠኛ ነዎት?")) {
+            cart = {};
+            updateCartUI();
+            alert("✅ ሁሉም የተመረጡ ዕቃዎች ከቅርጫት ወጥተዋል!");
+        }
+    }
+
+
     function updateCartUI() {
         let count = 0;
         for (let i in cart) {
             count += cart[i];
         }
         
-        const unpickBtn = document.getElementById('unpickBtn');
-        
         if (count > 0) {
             document.getElementById('cartBar').style.display = 'flex';
-            // በቅርጫት ውስጥ ያሉ ዕቃዎች ብዛት ይታያል
-            unpickBtn.innerText = `🗑️ አትምረጥ (${count} እቃዎች)`; 
         } else {
             document.getElementById('cartBar').style.display = 'none';
-            unpickBtn.innerText = "🗑️ አትምረጥ (አንድ)";
         }
     }
 
-    // የትዕዛዝ ማረጋገጫ ሞዳልን የሚከፍት ተግባር
     function openCheckout() {
         if (Object.keys(cart).length === 0) {
-            alert("ቅርጫትዎ ባዶ ነው። እባክዎ ከመዘዝዎ በፊት ዕቃ ይምረጡ።");
+            alert("ቅርጫትዎ ባዶ ነው።");
             return;
         }
         
-        // የትዕዛዝ ማጠቃለያ (Summary) የሚታየውን ዝርዝር በትክክል ማዘጋጀት
         let listHtml = "<h3>የተመረጡ ዕቃዎች ዝርዝር:</h3><ul style='list-style: none; padding: 0;'>";
         let subtotal = 0;
         for (let i in cart) {
@@ -458,7 +428,6 @@
         listHtml += `<p>የዲሊቨሪ (መላኪያ): <b>${deliveryFee} ብር</b></p>`;
         listHtml += `<h3 style="color:#2E7D32">ጠቅላላ ክፍያ: ${subtotal + deliveryFee} ብር</h3>`;
         
-        // ማጠቃለያው በትክክለኛ ቦታ ይቀመጣል
         document.getElementById('orderSummary').innerHTML = listHtml;
         document.getElementById('checkoutModal').style.display = 'flex';
     }
@@ -475,7 +444,7 @@
         document.getElementById('requestModal').style.display = 'none';
     }
 
-    // ትዕዛዝ ወደ ቴሌግራም መላክ
+    // *** የ sendOrder ተግባር (GPS ይልካል) ***
     function sendOrder() {
         const name = document.getElementById('fullName').value;
         const phone = document.getElementById('phone').value;
@@ -485,55 +454,83 @@
             alert("እባክዎ ሁሉንም የግል መረጃዎች በትክክል ያስገቡ!");
             return;
         }
+        
+        // 1. የትዕዛዝ ስሌት
+        let cartItems = [];
+        let subtotal = 0;
+        for (let i in cart) {
+            let p = products[i];
+            let cost = p.price * cart[i];
+            subtotal += cost;
+            cartItems.push({
+                name: p.name,
+                qty: cart[i],
+                cost: cost,
+                emoji: p.emoji
+            });
+        }
+        
+        const total = subtotal + deliveryFee;
 
+        // 2. ለ Telegram የሚላከውን መልዕክት ይፍጠሩ
         let message = `🛒 *አዲስ ዋና ትዕዛዝ (Gebeya)* %0A`;
         message += `------------------%0A`;
         message += `👤 ስም: ${name} %0A`;
         message += `📞 ስልክ: ${phone} %0A`;
-        message += `📍 አድራሻ: ${address} %0A`;
+        
+        if (savedLocation) {
+            // የቴሌግራም ካርታ ሊንክ ይፈጥራል
+            const mapLink = `https://www.google.com/maps/search/?api=1&query=${savedLocation.lat},${savedLocation.lon}`;
+            message += `🗺️ *ትክክለኛ ቦታ* (GPS): %0A[ቦታውን በካርታ ላይ እይ](${mapLink})%0A`;
+            message += ` (Lat: ${savedLocation.lat}, Lon: ${savedLocation.lon}) %0A`;
+        }
+        
+        message += `📍 አድራሻ: ${address} %0A`; 
         message += `------------------%0A`;
         
-        let subtotal = 0;
-        for (let i in cart) {
-            subtotal += products[i].price * cart[i];
-            message += `${products[i].emoji} ${products[i].name} (x${cart[i]}) - ${products[i].price * cart[i]} ብር %0A`;
-        }
+        cartItems.forEach(item => {
+             message += `${item.emoji} ${item.name} (x${item.qty}) - ${item.cost} ብር %0A`;
+        });
         
         message += `------------------%0A`;
         message += `🚚 ዲሊቨሪ: ${deliveryFee} ብር %0A`; 
-        message += `💰 *ጠቅላላ ክፍያ: ${subtotal + deliveryFee} ብር* %0A`; 
+        message += `💰 *ጠቅላላ ክፍያ: ${total} ብር* %0A`; 
         message += `------------------%0A`;
         message += `**ክፍያ በ CBE (አካውንት: ${MY_CBE_ACCOUNT})**%0A`;
         message += `**ስልክ (Shop): ${MY_PHONE_NUMBER}**`;
 
 
+        // 3. መልእክቱን ወደ ቴሌግራም ይላኩ
+        const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
+
         const btn = document.querySelector('#checkoutModal .confirm-btn');
         btn.innerText = "⏳ በመላክ ላይ...";
         btn.disabled = true;
 
-        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`)
-            .then(response => {
-                if(response.ok) {
-                    alert("✅ ትዕዛዝዎ ተልኳል! ክፍያውን ሲያጠናቅቁ ለቦታ ማረጋገጫ ወዲያውኑ እናገኝዎታለን።");
-                    cart = {}; 
-                    closeCheckout();
-                    updateCartUI();
-                    document.getElementById('cartBar').style.display = 'none';
-                    // ደንበኛውን ወደ እርስዎ የቴሌግራም ቻት ይወስደዋል
-                    window.location.href = `https://t.me/${YOUR_TELEGRAM_USERNAME.replace('@', '')}`;
-                } else {
-                    console.error("Telegram API Error:", response.status, response.statusText);
-                    alert("⚠️ ትዕዛዙን መላክ አልተቻለም።");
-                }
-                btn.innerText = "✅ አረጋግጥና ላክ";
-                btn.disabled = false;
-            })
-            .catch(error => {
-                console.error("Fetch Error:", error);
-                alert("⚠️ ችግር ተፈጥሯል! እባክዎ ኢንተርኔትዎን ያረጋግጡና ይሞክሩ።");
-                btn.innerText = "✅ አረጋግጥና ላክ";
-                btn.disabled = false;
-            });
+        fetch(telegramUrl)
+        .then(response => {
+             if (response.ok) {
+                alert("✅ ትዕዛዝዎ ተልኳል! ክፍያውን ሲያጠናቅቁ ወዲያውኑ እናገኝዎታለን።");
+                cart = {}; 
+                closeCheckout();
+                updateCartUI();
+                document.getElementById('cartBar').style.display = 'none';
+                
+                // ደንበኛውን ወደ እርስዎ የቴሌግራም ገጽ ይወስደዋል
+                window.location.href = `https://t.me/${YOUR_TELEGRAM_USERNAME.replace('@', '')}`; 
+            } else {
+                console.error("Telegram API Error Response:", response.status, response.statusText);
+                alert("⚠️ ትዕዛዙን መላክ አልተቻለም። የቴሌግራም Token/Chat ID ትክክል መሆኑን ያረጋግጡ።");
+            }
+            btn.innerText = "✅ አረጋግጥና ላክ";
+            btn.disabled = false;
+        })
+        .catch(error => {
+            console.error("Fetch Error:", error);
+            alert("⚠️ የኔትወርክ ችግር ተፈጥሯል! እባክዎ ኢንተርኔትዎን ያረጋግጡ ወይም ይደውሉ።");
+            btn.innerText = "✅ አረጋግጥና ላክ";
+            btn.disabled = false;
+        });
     }
 
     // የመጠየቂያ መልእክት ወደ ቴሌግራም መላክ
