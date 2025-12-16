@@ -247,24 +247,26 @@
         <label for="requestPhone">ስልክ ቁጥር</label>
         <input type="tel" id="requestPhone" placeholder="09...">
 
-        <p style="font-size: 12px; color: red;">* ማሳሰቢያ: የመጠየቂያ መልዕክት ቶክን ገና አልተደበቀም።</p>
-
         <button class="confirm-btn" onclick="sendRequest()">ላክልኝ</button>
     </div>
 </div>
 
 <script>
-    // --- 1. የግል መረጃዎች (ሚስጥር የማያስፈልጋቸው) ---
-    // !!! እዚህ ጋር የቴሌግራም Token ወይም Chat ID አይገባም !!!
-    const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; // የእርስዎ ትክክለኛ የቴሌግራም Username
-    
+    // ⚠️⚠️⚠️ በጣም አስፈላጊ! እነዚህ የእርስዎ የቴሌግራም ምስጢራዊ መረጃዎች ናቸው! ⚠️⚠️⚠️
+    // (እነዚህ መረጃዎች በገጹ ላይ በግልጽ ይታያሉ)
+    const TELEGRAM_BOT_TOKEN = "8165448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
+    const TELEGRAM_CHAT_ID = "5229826685";  
+    const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; 
+    // ------------------------------------------------------------------
+
     // --- የክፍያ መረጃ ---
     const MY_PHONE_NUMBER = "0962636940";
     const MY_CBE_ACCOUNT = "1000446752387";
     // ------------------------------------------
 
-    let savedLocation = null; // የደንበኛውን GPS መረጃ ለማስቀመጥ
+    let savedLocation = null; 
 
+    // የምርት ዝርዝር (በግልጽ የሚታይ ነው)
     const products = [
         // --- ፍራፍሬዎች እና አትክልቶች ---
         { name: "ድንች", price: 35, unit: "ኪሎ", emoji: "🥔" },
@@ -288,7 +290,7 @@
         // --- ግሮሰሪ እና መጠጦች ---
         { name: "ቡና", price: 1400, unit: "ኪሎ", emoji: "☕" },
         { name: "የወይራ ዘይት", price: 1400, unit: "1 ሊትር", emoji: "🫒" },
-        { name: "ዘይት (ማብሰያ)", price: 1950, unit: "5 ሊትር", emoji: "🍾" }, // Cooking Oil
+        { name: "ዘይት (ማብሰያ)", price: 1950, unit: "5 ሊትር", emoji: "🍾" }, 
         { name: "ስኳር", price: 150, unit: "ኪሎ", emoji: "🍚" }, 
         { name: "ኤልሳ ቆሎ", price: 680, unit: "ኪሎ", emoji: "🥜"},
         { name: "ዱቄት", price: 120, unit: "ኪሎ", emoji: "🌾"},
@@ -325,13 +327,14 @@
         `;
     });
 
-    // --- የቦታ ጥያቄ (Geolocation Logic) ---
+    // --- የቦታ ጥያቄ (Geolocation Logic) - የተስተካከለው ኮድ ---
     document.addEventListener('DOMContentLoaded', (event) => {
         if (navigator.geolocation) {
             const statusDiv = document.getElementById('locationStatus');
             statusDiv.style.color = "#FFAB40"; 
             statusDiv.textContent = "⏳ የአካባቢ መረጃዎን በመጠየቅ ላይ...";
             
+            // የቦታውን መላኪያ ጊዜ (timeout) ወደ 20 ሰከንድ አራዝመነዋል።
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     savedLocation = {
@@ -343,14 +346,15 @@
                     statusDiv.style.color = "#4CAF50"; 
                 },
                 (error) => {
+                    // ፍቃድ ተከልክሎ ከሆነ ወይም ጊዜው ካለፈ
                     statusDiv.textContent = "❌ የአካባቢ ፍቃድ አልተሰጠም። እባክዎ በእጅዎ ይጻፉ።";
                     statusDiv.style.color = "#D32F2F"; 
                     savedLocation = null;
                 },
                 {
                     enableHighAccuracy: true,
-                    timeout: 5000, 
-                    maximumAge: 0 // ሁልጊዜ አዲስ ፍቃድ እንዲጠይቅ ያደርጋል
+                    timeout: 20000, // ጊዜው ከፍ ብሏል
+                    maximumAge: 60000 // አንድ ደቂቃ ድረስ የቆየ ቦታ ቢሆን ይቀበል
                 }
             );
         }
@@ -443,7 +447,7 @@
         document.getElementById('requestModal').style.display = 'none';
     }
 
-    // *** የ sendOrder ተግባር ወደ ሚስጥራዊው Netlify Function ይጠራል ***
+    // *** የ sendOrder ተግባር (Token በግልጽ የተቀመጠበት) ***
     function sendOrder() {
         const name = document.getElementById('fullName').value;
         const phone = document.getElementById('phone').value;
@@ -471,15 +475,16 @@
         
         const total = subtotal + deliveryFee;
 
-        // 2. ለ Telegram የሚላከውን መልዕክት ይፍጠሩ (ይህ አሁንም Frontend ላይ ይፈጠራል)
+        // 2. ለ Telegram የሚላከውን መልዕክት ይፍጠሩ
         let message = `🛒 *አዲስ ዋና ትዕዛዝ (Gebeya)* %0A`;
         message += `------------------%0A`;
         message += `👤 ስም: ${name} %0A`;
         message += `📞 ስልክ: ${phone} %0A`;
         
         if (savedLocation) {
-            // የቴሌግራም ካርታ ሊንክ ይፈጥራል
-            message += `🗺️ *ትክክለኛ ቦታ* (GPS): %0A[ቦታውን በካርታ ላይ እይ](http://maps.google.com/?q=${savedLocation.lat},${savedLocation.lon})%0A`;
+            // የቴሌግራም ካርታ ሊንክ ይፈጥራል (አዲስ ቦታ ኮድ)
+            message += `🗺️ *ትክክለኛ ቦታ* (GPS): %0A[ቦታውን በካርታ ላይ እይ](http://google.com/maps?q=${savedLocation.lat},${savedLocation.lon})%0A`;
+            message += ` (Lat: ${savedLocation.lat}, Lon: ${savedLocation.lon}) %0A`;
         }
         
         message += `📍 አድራሻ: ${address} %0A`; 
@@ -497,38 +502,16 @@
         message += `**ስልክ (Shop): ${MY_PHONE_NUMBER}**`;
 
 
-        // 3. ወደ Netlify Function ይላኩ (ይህ ሚስጥሩ ነው)
-        const payload = {
-            name: name,
-            phone: phone,
-            address: address,
-            cart: cartItems,
-            subtotal: subtotal,
-            deliveryFee: deliveryFee,
-            total: total,
-            message: message, // የቴሌግራም መልእክት ጽሑፍ
-            savedLocation: savedLocation 
-        };
+        // 3. መልእክቱን ወደ ቴሌግራም ይላኩ (Token በግልጽ ይሄዳል)
+        const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
 
         const btn = document.querySelector('#checkoutModal .confirm-btn');
         btn.innerText = "⏳ በመላክ ላይ...";
         btn.disabled = true;
 
-        // ወደ ሚስጥራዊው Netlify ተግባር (.netlify/functions/send_order) ይላኩ!
-        fetch('/.netlify/functions/send_order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
+        fetch(telegramUrl)
         .then(response => {
-             if (response.status === 200) {
-                return response.json();
-             } else {
-                 throw new Error(`Server responded with status: ${response.status}`);
-             }
-        })
-        .then(data => {
-            if (data.message === "Order processed successfully!") {
+             if (response.ok) {
                 alert("✅ ትዕዛዝዎ ተልኳል! ክፍያውን ሲያጠናቅቁ ወዲያውኑ እናገኝዎታለን።");
                 cart = {}; 
                 closeCheckout();
@@ -538,7 +521,7 @@
                 // ደንበኛውን ወደ እርስዎ የቴሌግራም ገጽ ይወስደዋል
                 window.location.href = `https://t.me/${YOUR_TELEGRAM_USERNAME.replace('@', '')}`; 
             } else {
-                alert("⚠️ ትዕዛዙ ተልኳል ግን ሙሉ በሙሉ ማረጋገጥ አልተቻለም። እባክዎ በቴሌግራም ይደውሉ።");
+                alert("⚠️ ትዕዛዙን መላክ አልተቻለም። እባክዎ በቴሌግራም ይደውሉ።");
             }
             btn.innerText = "✅ አረጋግጥና ላክ";
             btn.disabled = false;
@@ -551,7 +534,7 @@
         });
     }
 
-    // የመጠየቂያ መልእክት ወደ ቴሌግራም መላክ (ይህ አሁንም Tokenን በግልጽ ስለሚያሳይ አደገኛ ነው)
+    // የመጠየቂያ መልእክት ወደ ቴሌግራም መላክ (Token በግልጽ የተቀመጠበት)
     function sendRequest() {
         const text = document.getElementById('requestText').value;
         const phone = document.getElementById('requestPhone').value;
@@ -560,11 +543,6 @@
             alert("እባክዎ የሚፈልጉትን ዕቃ እና ስልክ ቁጥር ያስገቡ!");
             return;
         }
-
-        // !!! አደገኛ፡ ይህ Token በFrontend ውስጥ ይታያል !!!
-        const TELEGRAM_BOT_TOKEN_REQUEST = "8165448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
-        const TELEGRAM_CHAT_ID_REQUEST = "5229826685";  
-        // !!!
 
         let message = `❓ *አዲስ የመጠየቂያ መልእክት (ያልተዘረዘረ)* %0A`;
         message += `------------------%0A`;
@@ -575,7 +553,7 @@
         btn.innerText = "⏳ በመላክ ላይ...";
         btn.disabled = true;
 
-        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN_REQUEST}/sendMessage?chat_id=${TELEGRAM_CHAT_ID_REQUEST}&text=${message}&parse_mode=Markdown`)
+        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${message}&parse_mode=Markdown`)
             .then(response => {
                 if(response.ok) {
                     alert("✅ ጥያቄዎ ደርሶናል! በቅርቡ እንደውላለን።");
@@ -599,4 +577,3 @@
 
 </body>
 </html>
-
