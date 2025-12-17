@@ -3,234 +3,396 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ገበያ - ሙያና ምቾት</title>
+    <title>bishe ገበያ</title>
     <style>
-        :root { --primary: #5D4037; --secondary: #FFAB40; --bg: #F5F5F5; --text: #333; --green: #4CAF50; }
-        body { font-family: 'Nyala', sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; }
-        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
-        .tabs { display: flex; background: white; position: sticky; top: 60px; z-index: 999; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; border-bottom: 3px solid transparent; }
-        .tab.active { border-bottom: 3px solid var(--secondary); color: var(--secondary); }
+        :root {
+            --primary: #5D4037; --secondary: #FFAB40; --bg: #F5F5F5;
+            --text: #333; --accent: #4CAF50;
+        }
+        body {
+            font-family: 'Nyala', 'Abyssinica SIL', sans-serif;
+            margin: 0; padding: 0; background-color: var(--bg); color: var(--text);
+            padding-bottom: 80px;
+        }
+        header {
+            background-color: var(--primary); color: white; padding: 20px 0;
+            text-align: center; position: sticky; top: 0; z-index: 1000;
+        }
         .container { padding: 15px; max-width: 800px; margin: auto; }
-        .category-title { background: #eee; padding: 10px; margin: 20px 0 10px; border-radius: 5px; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .card { background: white; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; }
-        .card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
-        .price { color: var(--primary); font-weight: bold; font-size: 14px; }
         
-        /* Quantity Modal */
-        #qtyModal, #checkoutModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2001; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
-        .qty-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .qty-btn { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; cursor: pointer; }
+        .tabs { display: flex; background: #eee; position: sticky; top: 80px; z-index: 999; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .tab-btn { flex: 1; padding: 15px; border: none; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; }
+        .tab-btn.active { background: var(--secondary); color: white; }
+
+        .section-title { 
+            background: #e0e0e0; padding: 10px; margin: 20px 0 10px; 
+            border-radius: 5px; font-weight: bold; font-size: 20px; border-left: 5px solid var(--primary);
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card {
+            background: white; border-radius: 12px; padding: 12px;
+            text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative; cursor: pointer; border: 1px solid transparent;
+        }
+        .card:active { border-color: var(--secondary); transform: scale(0.98); }
+        .product-emoji { font-size: 35px; display: block; margin-bottom: 5px; }
+        .item-count-badge {
+            position: absolute; top: -5px; right: -5px;
+            background: var(--accent); color: white; border-radius: 50%;
+            padding: 4px 8px; font-size: 14px; font-weight: bold;
+        }
+        .price { color: var(--primary); font-weight: bold; font-size: 15px; }
         
-        .cart-bar { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: none; justify-content: space-around; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .btn-main { background: var(--green); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 16px; }
-        .recipe-card { border-left: 5px solid var(--secondary); margin-bottom: 15px; padding: 10px; background: #fffde7; }
+        .recipe-card {
+            background: white; margin-bottom: 15px; padding: 20px; 
+            border-radius: 12px; border-left: 6px solid var(--secondary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .recipe-price { font-weight: bold; color: var(--accent); margin-top: 10px; font-size: 17px; }
+        .recipe-steps { font-size: 15px; color: #555; margin-top: 10px; line-height: 1.6; }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; width: 90%; max-width: 450px; padding: 25px;
+            border-radius: 15px; max-height: 85vh; overflow-y: auto;
+        }
+
+        /* AI CHATBOT STYLES */
+        #chatWidget {
+            position: fixed; bottom: 90px; right: 20px; z-index: 1002;
+        }
+        #chatBox {
+            display: none; width: 300px; height: 400px; background: white;
+            border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            flex-direction: column; overflow: hidden;
+        }
+        #chatHeader { background: var(--primary); color: white; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; }
+        #chatMessages { flex: 1; padding: 10px; overflow-y: auto; font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 8px 12px; border-radius: 10px; max-width: 80%; }
+        .bot-msg { background: #eee; align-self: flex-start; }
+        .user-msg { background: var(--secondary); color: white; align-self: flex-end; }
+        #chatInputArea { display: flex; border-top: 1px solid #ddd; }
+        #chatInputArea input { border: none; padding: 10px; flex: 1; outline: none; }
+        #chatInputArea button { background: var(--accent); color: white; border: none; padding: 10px; cursor: pointer; }
+        .help-bot-btn {
+            width: 60px; height: 60px; background: #0088cc; color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); float: right;
+        }
+
+        .weight-option {
+            display: block; width: 100%; padding: 14px; margin: 8px 0;
+            background: #f1f3f4; border: 1px solid #ddd; border-radius: 8px;
+            text-align: left; font-size: 17px; cursor: pointer; font-weight: bold;
+        }
+        
+        .cart-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; 
+            background: white; padding: 15px; display: flex; 
+            justify-content: space-around; box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+            z-index: 1001;
+        }
+        .checkout-btn { background: var(--accent); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 17px; font-weight: bold; cursor: pointer; }
+        .remove-one-btn { background: #EF5350; color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+        
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+
+        .payment-info {
+            background: #fff3e0; padding: 15px; border-radius: 8px;
+            border: 1px dashed var(--primary); margin: 15px 0; font-size: 15px;
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <h1 id="mainTitle">ቢሾፍቱ ገበያ</h1>
+    <h1>bishe ገበያ</h1>
 </header>
 
-<div class="tabs">
-    <div class="tab active" onclick="switchPage('shop')">ገበያ</div>
-    <div class="tab" onclick="switchPage('muya')">የሙያ ገጽ (Recipe)</div>
+<div id="chatWidget">
+    <div id="chatBox">
+        <div id="chatHeader">የቢሼ ገበያ ረዳት <span onclick="toggleChat()" style="cursor:pointer">✖</span></div>
+        <div id="chatMessages">
+            <div class="msg bot-msg">ጤና ይስጥልኝ! እኔ የቢሼ ገበያ ረዳት ነኝ። በምን ልርዳዎት?</div>
+        </div>
+        <div id="chatInputArea">
+            <input type="text" id="userInput" placeholder="ጥያቄዎን እዚህ ይጻፉ..." onkeypress="if(event.key==='Enter') sendChat()">
+            <button onclick="sendChat()">ላክ</button>
+        </div>
+    </div>
+    <div class="help-bot-btn" onclick="toggleChat()">💬</div>
 </div>
 
-<div id="shopPage" class="container">
-    <div id="productContainer"></div>
-    <button onclick="openCheckout()" style="width:100%; padding:15px; background:#008080; color:white; border:none; border-radius:10px; margin-top:20px;">➕ እዚህ የሌለ ዕቃ ጠይቅ / እዘዝ</button>
+<div class="tabs">
+    <button class="tab-btn active" id="tab-gebeya" onclick="showPage('gebeya')">🛒 ገበያ</button>
+    <button class="tab-btn" id="tab-muya" onclick="showPage('muya')">👩‍🍳 የሙያ ገጽ</button>
+</div>
+
+<div id="gebeyaPage" class="container">
+    <div id="productSections"></div>
 </div>
 
 <div id="muyaPage" class="container" style="display:none;">
-    <h2 style="text-align:center; color:var(--primary);">ምርጥ የቤት ውስጥ ሙያዎች</h2>
-    <div id="recipeContainer"></div>
+    <div id="recipeList"></div>
 </div>
 
-<div id="qtyModal">
-    <div class="modal-content">
-        <h3 id="qtyTitle">ብዛት ይምረጡ</h3>
-        <div class="qty-grid" id="qtyOptions"></div>
-        <button onclick="closeQty()" style="width:100%; margin-top:15px; padding:10px; background:#eee; border:none; border-radius:5px;">ተመለስ</button>
-    </div>
-</div>
+<div id="weightModal" class="modal"><div class="modal-content"><h3 id="weightModalTitle"></h3><div id="weightOptions"></div><button onclick="closeModal('weightModal')" style="width:100%; margin-top:15px; padding:12px; background:#ddd; border:none; border-radius:8px;">ዝጋ</button></div></div>
 
-<div id="checkoutModal">
+<div id="checkoutModal" class="modal">
     <div class="modal-content">
-        <h2>የትዕዛዝ ማጠቃለያ</h2>
+        <h2 style="color:var(--primary)">ትዕዛዝ ማረጋገጫ</h2>
         <div id="orderSummary"></div>
-        <textarea id="extraItems" rows="3" placeholder="እዚህ የሌለ ተጨማሪ ነገር ካለ..."></textarea>
-        <input type="text" id="custName" placeholder="ሙሉ ስም">
-        <input type="tel" id="custPhone" placeholder="ስልክ ቁጥር">
-        <button class="btn-main" style="width:100%;" onclick="sendOrder()">✅ ትዕዛዙን አረጋግጥ</button>
-        <button onclick="closeCheckout()" style="width:100%; background:none; border:none; color:red; margin-top:10px;">ዝጋ</button>
+        
+        <div class="payment-info">
+            <strong>💳 የክፍያ መረጃ:</strong><br>
+            CBE (ንግድ ባንክ): <b>1000446752387</b><br>
+            ስልክ: <b>0962636940</b>
+        </div>
+
+        <input type="text" id="fullName" placeholder="ሙሉ ስም">
+        <input type="tel" id="phone" placeholder="ስልክ ቁጥር">
+        <input type="text" id="address" placeholder="አድራሻ (ሰፈር/ልዩ ቦታ)">
+        <button class="checkout-btn" style="width:100%; margin-top:10px;" onclick="sendOrder()">ትዕዛዙን ላክ</button>
+        <button onclick="closeModal('checkoutModal')" style="width:100%; margin-top:10px; padding:10px; border:none; background:none; color:gray;">ተመለስ</button>
     </div>
 </div>
 
-<div class="cart-bar" id="cartBar">
-    <span id="cartCount" style="font-weight:bold;"></span>
-    <button class="btn-main" onclick="openCheckout()">🛒 ትዕዛዝዎን ይጨርሱ</button>
+<div class="cart-bar" id="cartBar" style="display:none;">
+    <button class="remove-one-btn" onclick="removeLastItem()">↩ አንዱን ሰርዝ</button>
+    <button class="checkout-btn" onclick="openCheckout()">✅ ትዕዛዝ ጨርሻለሁ</button>
 </div>
 
 <script>
-const products = [
-    // አትክልቶች (Vegetables)
-    { id:1, cat: "አትክልት", name: "ፎሶሊያ", price: 100, unit: "kg", emoji: "🌿" },
-    { id:2, cat: "አትክልት", name: "ጃምበርጃን", price: 60, unit: "kg", emoji: "🍆" },
-    { id:3, cat: "አትክልት", name: "ካሮት", price: 70, unit: "kg", emoji: "🥕" },
-    { id:4, cat: "አትክልት", name: "ቃሪያ", price: 150, unit: "kg", emoji: "🌶️" },
-    { id:5, cat: "አትክልት", name: "ባሮ ሽንኩርት", price: 120, unit: "kg", emoji: "🧅" },
-    { id:6, cat: "አትክልት", name: "ባሮ ቅጠል", price: 100, unit: "kg", emoji: "🍃" },
-    { id:7, cat: "አትክልት", name: "ኪያር", price: 140, unit: "kg", emoji: "🥒" },
-    { id:8, cat: "አትክልት", name: "ዝኩኒ", price: 60, unit: "kg", emoji: "🥒" },
-    { id:9, cat: "አትክልት", name: "አበባ ጎመን", price: 100, unit: "kg", emoji: "🥦" },
-    { id:10, cat: "አትክልት", name: "ቀይ ስር", price: 40, unit: "kg", emoji: "🥔" },
-    { id:11, cat: "አትክልት", name: "ቲማቲም", price: 30, unit: "kg", emoji: "🍅" },
-    { id:12, cat: "አትክልት", name: "ጥቅል ጎመን", price: 40, unit: "one", emoji: "🥬" },
-    { id:13, cat: "አትክልት", name: "ሮዝመሪ", price: 20, unit: "kg", emoji: "🌿" },
+    const TELEGRAM_BOT_TOKEN = "8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A";
+    const TELEGRAM_CHAT_ID = "5229826685";
 
-    // ፍራፍሬዎች (Fruits)
-    { id:50, cat: "ፍራፍሬ", name: "ፓፓዬ", price: 100, unit: "kg", emoji: "🥭" },
-    { id:51, cat: "ፍራፍሬ", name: "ሐብሐብ", price: 80, unit: "kg", emoji: "🍉" },
-    { id:52, cat: "ፍራፍሬ", name: "አቮካዶ", price: 130, unit: "kg", emoji: "🥑" },
-    { id:53, cat: "ፍራፍሬ", name: "ማንጎ", price: 150, unit: "kg", emoji: "🥭" },
-    { id:54, cat: "ፍራፍሬ", name: "ስትሮውቤሪ", price: 220, unit: "kg", emoji: "🍓" },
-    { id:55, cat: "ፍራፍሬ", name: "ሎሚ", price: 200, unit: "kg", emoji: "🍋" },
+    let cart = [];
+    let currentPendingItem = null;
 
-    // ባልትና እና ጥራጥሬ (Tiratire/Baltina - Rub Agamash applied)
-    { id:100, cat: "ጥራጥሬና ባልትና", name: "ምጥን ሽሮ", price: 440, unit: "kg", emoji: "🍲", special: true },
-    { id:101, cat: "ጥራጥሬና ባልትና", name: "በርበሬ", price: 1200, unit: "kg", emoji: "🌶️", special: true },
-    { id:102, cat: "ጥራጥሬና ባልትና", name: "ምስር ክክ", price: 230, unit: "kg", emoji: "🥣", special: true },
-    { id:103, cat: "ጥራጥሬና ባልትና", name: "ተልባ", price: 500, unit: "kg", emoji: "🍪", special: true },
-    { id:104, cat: "ጥራጥሬና ባልትና", name: "ሚጥሚጣ", price: 800, unit: "kg", emoji: "🔥", special: true }
-];
+    const products = [
+        { cat: "አትክልቶች", name: "ፎሶሊያ", price: 100, unit: "ኪिलो", emoji: "🌱" },
+        { cat: "አትክልቶች", name: "ጃምበርጃን", price: 60, unit: "አንድ", emoji: "🍆" },
+        { cat: "አትክልቶች", name: "ካሮት", price: 70, unit: "ኪሎ", emoji: "🥕" },
+        { cat: "አትክልቶች", name: "ቃሪያ", price: 150, unit: "ኪሎ", emoji: "🌶️" },
+        { cat: "አትክልቶች", name: "ባሮ ሽንኩርት", price: 120, unit: "ኪሎ", emoji: "🧅" },
+        { cat: "አትክልቶች", name: "ባሮ ቅጠል", price: 100, unit: "ጥቅል", emoji: "🌿" },
+        { cat: "አትክልቶች", name: "ኪያር", price: 140, unit: "ኪሎ", emoji: "🥒" },
+        { cat: "አትክልቶች", name: "ዚኩኒ", price: 60, unit: "ኪሎ", emoji: "🥒" },
+        { cat: "አትክልቶች", name: "አበባ ጎመን", price: 100, unit: "ጥቅል", emoji: "🥦" },
+        { cat: "አትክልቶች", name: "ጉራጌ ጎመን", price: 100, unit: "ጥቅል", emoji: "🥬" },
+        { cat: "አትክልቶች", name: "ቀይ ስር", price: 40, unit: "ኪሎ", emoji: "🍠" },
+        { cat: "አትክልቶች", name: "ዱባ", price: 80, unit: "ኪሎ", emoji: "🎃" },
+        { cat: "አትክልቶች", name: "ጀርመን ሰላጣ", price: 80, unit: "ጥቅል", emoji: "🥗" },
+        { cat: "አትክልቶች", name: "ስፒናች", price: 200, unit: "ኪሎ", emoji: "🍃" },
+        { cat: "አትክልቶች", name: "ቫሚያ", price: 250, unit: "ኪሎ", emoji: "🍢" },
+        { cat: "አትክልቶች", name: "ብሮኮሊ", price: 200, unit: "ኪሎ", emoji: "🥦" },
+        { cat: "አትክልቶች", name: "ስኳር ድንች", price: 50, unit: "ኪሎ", emoji: "🍠" },
+        { cat: "አትክልቶች", name: "ጥቅል ጎመን", price: 40, unit: "ጥቅል", emoji: "🥬" },
+        { cat: "አትክልቶች", name: "ቀይ ጥቅል ጎመን", price: 120, unit: "ኪሎ", emoji: "🥬" },
+        { cat: "አትክልቶች", name: "ፐርሲሊን", price: 100, unit: "ኪሎ", emoji: "🌿" },
+        { cat: "አትክልቶች", name: "ሰለሪ", price: 150, unit: "ጥቅል", emoji: "🌱" },
+        { cat: "አትክልቶች", name: "ድንብላል ቅጠል", price: 150, unit: "ኪሎ", emoji: "🌿" },
+        { cat: "አትክልቶች", name: "ሮዝመሪ", price: 20, unit: "ጥቅል", emoji: "🌿" },
+        { cat: "አትክልቶች", name: "ዝንጅብል", price: 150, unit: "ኪሎ", emoji: "🫚" },
+        { cat: "አትክልቶች", name: "ነጭ ሽንኩርት", price: 180, unit: "ኪሎ", emoji: "🧄" },
+        { cat: "አትክልቶች", name: "ድንች", price: 35, unit: "ኪሎ", emoji: "🥔" },
+        { cat: "አትክልቶች", name: "ቲማቲም", price: 30, unit: "ኪሎ", emoji: "🍅" },
+        { cat: "አትክልቶች", name: "ቀይ ሽንኩርት", price: 35, unit: "ኪሎ", emoji: "🧅" },
+        { cat: "አትክልቶች", name: "ቆስጣ", price: 50, unit: "ጥቅል", emoji: "🌿" },
+        { cat: "አትክልቶች", name: "ሰላጣ", price: 50, unit: "ጥቅል", emoji: "🥗" },
+        { cat: "አትክልቶች", name: "ጎመን", price: 50, unit: "ጥቅል", emoji: "🥬" },
 
-const recipes = [
-    { name: "ምርጥ ምስር በድንች", items: ["ምስር ክክ", "ድንች", "በርበሬ"], total: 550, img: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400" },
-    { name: "አቮካዶ ሳላጣ (Healthy)", items: ["አቮካዶ", "ቲማቲም", "ቃሪያ", "ሎሚ"], total: 350, img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400" },
-    { name: "የአትክልት ክክላ (Mixed)", items: ["ካሮት", "ፎሶሊያ", "ድንች"], total: 400, img: "https://images.unsplash.com/photo-1566843972142-a7fcb70de55a?w=400" }
-];
+        { cat: "ፍራፍሬ", name: "ፓፓያ", price: 100, unit: "ኪሎ", emoji: "🥭" },
+        { cat: "ፍራፍሬ", name: "ሐብሐብ", price: 80, unit: "ኪሎ", emoji: "🍉" },
+        { cat: "ፍራፍሬ", name: "አቮካዶ", price: 130, unit: "ኪሎ", emoji: "🥑" },
+        { cat: "ፍራፍሬ", name: "ማንጎ", price: 150, unit: "ኪሎ", emoji: "🥭" },
+        { cat: "ፍራፍሬ", name: "ብርቱካን አረር", price: 250, unit: "ኪሎ", emoji: "🍊" },
+        { cat: "ፍራፍሬ", name: "ብርቱካን ቫሌንሽያ", price: 200, unit: "ኪሎ", emoji: "🍊" },
+        { cat: "ፍራፍሬ", name: "ሎሚ", price: 200, unit: "ኪሎ", emoji: "🍋" },
+        { cat: "ፍራፍሬ", name: "ስትሮቤሪ", price: 220, unit: "ኪሎ", emoji: "🍓" },
+        { cat: "ፍራፍሬ", name: "ማንዳሪን", price: 220, unit: "ኪሎ", emoji: "🍊" },
+        { cat: "ፍራፍሬ", name: "ቲሪንጎ", price: 200, unit: "ኪሎ", emoji: "🍋" },
+        { cat: "ፍራፍሬ", name: "ሙዝ", price: 70, unit: "ኪሎ", emoji: "🍌" },
 
-let cart = [];
-let currentItem = null;
+        { cat: "ጥራጥሬና ባልቲና", name: "ባቄላ ድፍን", price: 150, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ባቄላ የፉል", price: 200, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ሽንብራ ነጭ", price: 160, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ሽንብራ ቀይ", price: 130, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ተልባ", price: 500, unit: "ኪሎ", emoji: "🤎", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ተልባ የተለቀመ", price: 600, unit: "ኪሎ", emoji: "🤎", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ሚጥን ሽሮ", price: 440, unit: "ኪሎ", emoji: "🥘", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ነጭ ሽሮ", price: 360, unit: "ኪሎ", emoji: "🥘", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ፉርኖ ዱቄት", price: 120, unit: "ኪሎ", emoji: "🌾", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ጥቁር አዝሙድ", price: 1000, unit: "ኪሎ", emoji: "🌿", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ጦስኝ", price: 300, unit: "ኪሎ", emoji: "🌿", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "አሙን", price: 1200, unit: "ኪሎ", emoji: "🧂", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "በቆሎ ዱቄት", price: 70, unit: "ኪሎ", emoji: "🌽", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ለውዝ", price: 400, unit: "ኪሎ", emoji: "🥜", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ነጭ አዝሙድ", price: 500, unit: "ኪሎ", emoji: "🌿", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ኮሰረት", price: 260, unit: "ኪሎ", emoji: "🌿", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ድንብላል", price: 480, unit: "ኪሎ", emoji: "🌿", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ሰሊጥ", price: 250, unit: "ኪሎ", emoji: "🌱", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ኑግ", price: 200, unit: "ኪሎ", emoji: "🌱", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "የተፈጨ ነጭ ሽንኩርት", price: 400, unit: "ኪሎ", emoji: "🧄", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ጎመን ዘር", price: 260, unit: "ኪሎ", emoji: "🌿", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ቀረፋ", price: 1000, unit: "ኪሎ", emoji: "🍂", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ቡላ", price: 320, unit: "ኪሎ", emoji: "🥣", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "አተር ክክ", price: 180, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ሚጥሚጣ", price: 800, unit: "ኪሎ", emoji: "🌶️", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ፋንዲሻ", price: 260, unit: "ኪሎ", emoji: "🍿", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ኪኖር", price: 6, unit: "አንድ", emoji: "🧂" },
+        { cat: "ጥራጥሬና ባልቲና", name: "በርበሬ የተፈጨ", price: 1200, unit: "ኪሎ", emoji: "🌶️", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "በሶ የተፈጨ", price: 200, unit: "ኪሎ", emoji: "🥤", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ምስር ክክ", price: 230, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
+        { cat: "ጥራጥሬና ባልቲና", name: "ጨው የታሸገ", price: 25, unit: "አንድ", emoji: "🧂" },
 
-function renderShop() {
-    const container = document.getElementById('productContainer');
-    const categories = [...new Set(products.map(p => p.cat))];
-    container.innerHTML = "";
-    categories.forEach(cat => {
-        container.innerHTML += `<div class="category-title">${cat}</div><div class="grid">` + 
-        products.filter(p => p.cat === cat).map(p => `
-            <div class="card" onclick="openQty(${p.id})">
-                <span class="product-emoji">${p.emoji}</span>
-                <div style="font-weight:bold">${p.name}</div>
-                <div class="price">${p.price} ብር/${p.unit}</div>
-            </div>
-        `).join('') + `</div>`;
-    });
-}
+        { cat: "ስጋ", name: "ጥሬ ስጋ", price: 1200, unit: "ኪሎ", emoji: "🥩" },
+        { cat: "ስጋ", name: "ጎድን", price: 600, unit: "ኪሎ", emoji: "🦴" }
+    ];
 
-function renderRecipes() {
-    const container = document.getElementById('recipeContainer');
-    container.innerHTML = recipes.map(r => `
-        <div class="recipe-card" onclick="addRecipe(${recipes.indexOf(r)})">
-            <img src="${r.img}" style="width:100%; border-radius:8px;">
-            <h3>${r.name}</h3>
-            <p>ውስጡ፡ ${r.items.join(', ')}</p>
-            <div class="price">ጠቅላላ ዋጋ፡ ${r.total} ብር</div>
-            <button class="btn-main" style="margin-top:10px;">ይህን ሙያ እዘዝ</button>
-        </div>
-    `).join('');
-}
+    const recipes = [
+        { name: "ምስር (Misir)", items: ["ምስር ክክ", "ቀይ ሽንኩርት", "በርበሬ የተፈጨ"], steps: "1. ሽንኩርት ማቁላላት። 2. በርበሬ ጨምሮ በደንብ ማብሰል። 3. ምስሩን ጨምሮ ውሃ በመጠኑ በማድረግ ማብሰል።" },
+        { name: "ድንች (Dinich)", items: ["ድንች", "ቀይ ሽንኩርት", "ቃሪያ"], steps: "1. ድንቹን መክተፍና ማጠብ። 2. ሽንኩርት አቁላልቶ ድንቹን መጨመር። 3. ቃሪያ መጨመር።" },
+        { name: "ሽሮ (Shiro)", items: ["ሚጥን ሽሮ", "ቀይ ሽንኩርት", "ቲማቲም"], steps: "1. ሽንኩርትና ቲማቲም ማቁላላት። 2. ሽሮውን በውሃ በጥብጦ መጨመር። 3. ተንተክትኮ እስኪበስል መጠበቅ።" },
+        { name: "ሰላጣ (Salata)", items: ["ሰላጣ", "ቲማቲም", "ቃሪያ", "ቀይ ሽንኩርት"], steps: "1. ሰላጣውን መክተፍ። 2. ሽንኩርትና ቲማቲም ቀላቅሎ በሎሚና ዘይት ማቅረብ።" }
+    ];
 
-function switchPage(page) {
-    document.getElementById('shopPage').style.display = page === 'shop' ? 'block' : 'none';
-    document.getElementById('muyaPage').style.display = page === 'muya' ? 'block' : 'none';
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-}
-
-function openQty(id) {
-    currentItem = products.find(p => p.id === id);
-    document.getElementById('qtyTitle').innerText = `${currentItem.name} - መጠን ይምረጡ`;
-    const opts = document.getElementById('qtyOptions');
-    let html = `
-        <button class="qty-btn" onclick="addToCart(5)">5 kg</button>
-        <button class="qty-btn" onclick="addToCart(1)">1 kg</button>
-        <button class="qty-btn" onclick="addToCart(0.5)">ግማሽ (0.5)</button>
-        <button class="qty-btn" onclick="addToCart(0.25)">ሩብ (0.25)</button>
-    `;
-    if(currentItem.special) {
-        html += `<button class="qty-btn" onclick="addToCart(0.125)">ሩብ አጋማሽ (1/8)</button>`;
+    // AI LOGIC
+    function toggleChat() {
+        const chat = document.getElementById('chatBox');
+        chat.style.display = chat.style.display === 'flex' ? 'none' : 'flex';
     }
-    opts.innerHTML = html;
-    document.getElementById('qtyModal').style.display = 'flex';
-}
 
-function addToCart(qty) {
-    const itemPrice = currentItem.price * qty;
-    cart.push({ ...currentItem, pickedQty: qty, finalPrice: itemPrice });
-    document.getElementById('qtyModal').style.display = 'none';
-    updateCartUI();
-}
+    function sendChat() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+        
+        appendMsg(text, 'user-msg');
+        input.value = '';
 
-function addRecipe(index) {
-    const r = recipes[index];
-    cart.push({ name: `Recipe: ${r.name}`, finalPrice: r.total, pickedQty: 1, emoji: "🍳" });
-    updateCartUI();
-    alert(`የ${r.name} ግብዓቶች ወደ ቅርጫት ተጨምረዋል!`);
-}
+        // Simulate AI Knowledge
+        let reply = "ይቅርታ፣ ጥያቄዎ አልገባኝም። ስለ ምርቶች ወይም አሰራር ሊጠይቁኝ ይችላሉ።";
+        const lowerText = text.toLowerCase();
 
-function updateCartUI() {
-    const bar = document.getElementById('cartBar');
-    if(cart.length > 0) {
-        bar.style.display = 'flex';
-        document.getElementById('cartCount').innerText = `${cart.length} ዕቃዎች ተመርጠዋል`;
+        if (lowerText.includes("ዋጋ") || lowerText.includes("ስንት")) {
+            reply = "በገበያ ገጽ ላይ ሁሉንም ዋጋዎች ማግኘት ይችላሉ። ለምሳሌ ድንች 35 ብር ነው።";
+        } else if (lowerText.includes("አሰራር") || lowerText.includes("ሙያ")) {
+            reply = "በሙያ ገጽ ላይ ምርጥ የአሰራር ዘዴዎችን አስቀምጠናል! ምስር፣ ሽሮ እና ሌሎችም አሉ።";
+        } else if (lowerText.includes("ሰላም") || lowerText.includes("ጤና")) {
+            reply = "ሰላም! በምን ልርዳዎት?";
+        } else if (lowerText.includes("ትዕዛዝ")) {
+            reply = "ዕቃዎችን መርጠው 'ትዕዛዝ ጨርሻለሁ' የሚለውን በመጫን ማዘዝ ይችላሉ።";
+        }
+
+        setTimeout(() => appendMsg(reply, 'bot-msg'), 500);
     }
-}
 
-function openCheckout() {
-    const summary = document.getElementById('orderSummary');
-    let total = 0;
-    summary.innerHTML = cart.map((item, idx) => {
-        total += item.finalPrice;
-        return `<div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <span>${item.emoji} ${item.name} (${item.pickedQty})</span>
-            <span>${item.finalPrice} ብር <button onclick="removeItem(${idx})" style="color:red; border:none; background:none;">X</button></span>
-        </div>`;
-    }).join('');
-    summary.innerHTML += `<hr><b>ጠቅላላ፡ ${total + (cart.length > 0 ? 150 : 0)} ብር (Delivery Incl.)</b>`;
-    document.getElementById('checkoutModal').style.display = 'flex';
-}
+    function appendMsg(text, className) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${className}`;
+        msgDiv.innerText = text;
+        const container = document.getElementById('chatMessages');
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+    }
 
-function removeItem(idx) {
-    cart.splice(idx, 1);
-    if(cart.length === 0) document.getElementById('cartBar').style.display = 'none';
-    openCheckout();
-}
+    // PRODUCT LOGIC
+    function renderProducts() {
+        const container = document.getElementById('productSections');
+        const categories = ["አትክልቶች", "ፍራፍሬ", "ጥራጥሬና ባልቲና", "ስጋ"];
+        container.innerHTML = "";
+        categories.forEach(cat => {
+            const catProds = products.filter(p => p.cat === cat);
+            if (catProds.length > 0) {
+                container.innerHTML += `<div class="section-title">${cat}</div>`;
+                const grid = document.createElement('div'); grid.className = 'grid';
+                catProds.forEach(p => {
+                    const idx = products.indexOf(p);
+                    grid.innerHTML += `<div class="card" onclick="handleItemClick(${idx})"><span class="item-count-badge" id="badge-${idx}" style="display:none">0</span><span class="product-emoji">${p.emoji}</span><span class="name">${p.name}</span><div class="price">${p.price} ብር / ${p.unit}</div></div>`;
+                });
+                container.appendChild(grid);
+            }
+        });
+    }
 
-function closeQty() { document.getElementById('qtyModal').style.display = 'none'; }
-function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
+    function handleItemClick(idx) {
+        const product = products[idx];
+        if (product.unit === "ኪሎ") { openWeightPicker(idx); } else { addToCart(idx, 1, "1 " + product.unit); }
+    }
 
-function sendOrder() {
-    const name = document.getElementById('custName').value;
-    const phone = document.getElementById('custPhone').value;
-    const extra = document.getElementById('extraItems').value;
-    if(!name || !phone) { alert("እባክዎ ስም እና ስልክ ያስገቡ"); return; }
-    
-    let msg = `🛒 *አዲስ ትዕዛዝ*%0A👤 ስም: ${name}%0A📞 ስልክ: ${phone}%0A%0A`;
-    cart.forEach(i => msg += `• ${i.name} (${i.pickedQty}) - ${i.finalPrice}br%0A`);
-    if(extra) msg += `%0A📝 ተጨማሪ፡ ${extra}`;
-    
-    const url = `https://api.telegram.org/bot8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A/sendMessage?chat_id=5229826685&text=${encodeURIComponent(msg)}&parse_mode=Markdown`;
-    fetch(url).then(() => { alert("ትዕዛዝዎ ተልኳል!"); cart = []; location.reload(); });
-}
+    function openWeightPicker(idx) {
+        currentPendingItem = idx; const p = products[idx];
+        document.getElementById('weightModalTitle').innerText = p.name + " - መጠን";
+        const optionsDiv = document.getElementById('weightOptions'); optionsDiv.innerHTML = "";
+        const weights = [{label:"5 ኪሎ",val:5},{label:"3 ኪሎ",val:3},{label:"1 ኪሎ",val:1},{label:"ግማሽ (1/2)",val:0.5},{label:"ሩብ (1/4)",val:0.25}];
+        if (p.isTiratire) weights.push({label:"ሩብ አጋማሽ (1/8)",val:0.125});
+        weights.forEach(w => { optionsDiv.innerHTML += `<button class="weight-option" onclick="confirmWeight(${w.val}, '${w.label}')">${w.label} - ${(p.price * w.val).toFixed(2)} ብር</button>`; });
+        document.getElementById('weightModal').style.display = 'flex';
+    }
 
-renderShop();
-renderRecipes();
+    function confirmWeight(val, label) { addToCart(currentPendingItem, val, label); closeModal('weightModal'); }
+
+    function addToCart(idx, qty, label) {
+        const p = products[idx]; cart.push({ ...p, selectedQty: qty, qtyLabel: label, totalCost: p.price * qty });
+        updateCartUI();
+    }
+
+    function removeLastItem() { cart.pop(); updateCartUI(); }
+
+    function updateCartUI() {
+        document.getElementById('cartBar').style.display = cart.length > 0 ? 'flex' : 'none';
+        products.forEach((p, i) => {
+            const count = cart.filter(item => products.indexOf(p) === products.indexOf(item)).length;
+            const badge = document.getElementById(`badge-${i}`);
+            if(count > 0) { badge.innerText = count; badge.style.display = 'block'; } else { badge.style.display = 'none'; }
+        });
+    }
+
+    function openCheckout() {
+        let html = "<ul style='padding:0; list-style:none;'>"; let total = 0;
+        cart.forEach(item => { html += `<li style='padding:8px 0; border-bottom:1px solid #eee;'>${item.emoji} ${item.name} (${item.qtyLabel}) - <b>${item.totalCost.toFixed(2)} ብር</b></li>`; total += item.totalCost; });
+        html += `</ul><h3 style='color:var(--accent)'>ጠቅላላ: ${(total + 150).toFixed(2)} ብር (ከ150 መላኪያ ጋር)</h3>`;
+        document.getElementById('orderSummary').innerHTML = html;
+        document.getElementById('checkoutModal').style.display = 'flex';
+    }
+
+    function sendOrder() {
+        const name = document.getElementById('fullName').value;
+        const phone = document.getElementById('phone').value;
+        const address = document.getElementById('address').value;
+        if(!name || !phone || !address) return alert("እባክዎ ሁሉንም መረጃ ይሙሉ");
+        let msg = `🛒 *አዲስ ትዕዛዝ*\n👤 ስም: ${name}\n📞 ስልክ: ${phone}\n📍 አድራሻ: ${address}\n\n`;
+        let total = 0;
+        cart.forEach(i => { msg += `• ${i.emoji} ${i.name} (${i.qtyLabel}) - ${i.totalCost.toFixed(2)} ብር\n`; total += i.totalCost; });
+        msg += `\n🚚 መላኪያ: 150 ብር\n💰 *ጠቅላላ: ${(total + 150).toFixed(2)} ብር*`;
+        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`)
+        .then(() => { alert("ትዕዛዝዎ ተልኳል! በቅርቡ እንደውላለን።"); cart = []; updateCartUI(); closeModal('checkoutModal'); });
+    }
+
+    function renderRecipes() {
+        const list = document.getElementById('recipeList'); list.innerHTML = "";
+        recipes.forEach(r => {
+            let cost = 0; r.items.forEach(itemName => { const p = products.find(prod => prod.name === itemName); if(p) cost += p.price; });
+            list.innerHTML += `<div class="recipe-card"><div style="font-size: 20px; font-weight: bold; color:var(--primary)">${r.name}</div><div style="font-size: 14px; color: #777; margin-top:5px;"><b>ግብዓቶች:</b> ${r.items.join(", ")}</div><div class="recipe-steps"><b>አሰራር:</b> ${r.steps}</div><div class="recipe-price">የግብዓቶች ዋጋ: ~${cost.toFixed(2)} ብር</div></div>`;
+        });
+    }
+
+    function showPage(page) {
+        document.getElementById('gebeyaPage').style.display = page === 'gebeya' ? 'block' : 'none';
+        document.getElementById('muyaPage').style.display = page === 'muya' ? 'block' : 'none';
+        document.getElementById('tab-gebeya').classList.toggle('active', page === 'gebeya');
+        document.getElementById('tab-muya').classList.toggle('active', page === 'muya');
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    renderProducts();
+    renderRecipes();
 </script>
 </body>
 </html>
