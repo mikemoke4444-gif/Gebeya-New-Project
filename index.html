@@ -47,10 +47,15 @@
         .recipe-card {
             background: white; margin-bottom: 15px; padding: 20px; 
             border-radius: 12px; border-left: 6px solid var(--secondary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); position: relative;
         }
         .recipe-price { font-weight: bold; color: var(--accent); margin-top: 10px; font-size: 17px; }
         .recipe-steps { font-size: 15px; color: #555; margin-top: 10px; line-height: 1.6; }
+        .unpick-btn { 
+            position: absolute; top: 10px; right: 10px; background: #ff5252; 
+            color: white; border: none; padding: 5px 10px; border-radius: 5px; 
+            cursor: pointer; font-size: 12px; font-weight: bold;
+        }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -62,22 +67,25 @@
         }
 
         /* AI CHATBOT STYLES */
-        #chatWidget {
-            position: fixed; bottom: 90px; right: 20px; z-index: 1002;
-        }
+        #chatWidget { position: fixed; bottom: 90px; right: 20px; z-index: 1002; }
         #chatBox {
-            display: none; width: 300px; height: 400px; background: white;
+            display: none; width: 310px; height: 450px; background: white;
             border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-            flex-direction: column; overflow: hidden;
+            flex-direction: column; overflow: hidden; border: 1px solid #ddd;
         }
-        #chatHeader { background: var(--primary); color: white; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; }
-        #chatMessages { flex: 1; padding: 10px; overflow-y: auto; font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
-        .msg { padding: 8px 12px; border-radius: 10px; max-width: 80%; }
-        .bot-msg { background: #eee; align-self: flex-start; }
+        #chatHeader { background: var(--primary); color: white; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        #chatMessages { flex: 1; padding: 10px; overflow-y: auto; font-size: 14px; display: flex; flex-direction: column; gap: 8px; background: #fafafa; }
+        .msg { padding: 10px 14px; border-radius: 15px; max-width: 85%; line-height: 1.4; }
+        .bot-msg { background: #eee; align-self: flex-start; color: #333; }
         .user-msg { background: var(--secondary); color: white; align-self: flex-end; }
+        
+        .chat-options { display: flex; gap: 5px; padding: 8px; overflow-x: auto; background: #f0f0f0; border-top: 1px solid #ddd; }
+        .opt-btn { background: white; border: 1px solid #ccc; padding: 5px 10px; border-radius: 15px; font-size: 12px; white-space: nowrap; cursor: pointer; }
+
         #chatInputArea { display: flex; border-top: 1px solid #ddd; }
-        #chatInputArea input { border: none; padding: 10px; flex: 1; outline: none; }
-        #chatInputArea button { background: var(--accent); color: white; border: none; padding: 10px; cursor: pointer; }
+        #chatInputArea input { border: none; padding: 12px; flex: 1; outline: none; }
+        #chatInputArea button { background: var(--accent); color: white; border: none; padding: 10px 15px; cursor: pointer; }
+        
         .help-bot-btn {
             width: 60px; height: 60px; background: #0088cc; color: white;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -105,6 +113,8 @@
             background: #fff3e0; padding: 15px; border-radius: 8px;
             border: 1px dashed var(--primary); margin: 15px 0; font-size: 15px;
         }
+
+        .loc-warning { color: #d32f2f; font-size: 13px; font-weight: bold; margin: 10px 0; background: #ffebee; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -115,9 +125,14 @@
 
 <div id="chatWidget">
     <div id="chatBox">
-        <div id="chatHeader">የቢሼ ገበያ ረዳት <span onclick="toggleChat()" style="cursor:pointer">✖</span></div>
+        <div id="chatHeader">የቢሼ AI ረዳት 🤖 <span onclick="toggleChat()" style="cursor:pointer">✖</span></div>
         <div id="chatMessages">
-            <div class="msg bot-msg">ጤና ይስጥልኝ! እኔ የቢሼ ገበያ ረዳት ነኝ። በምን ልርዳዎት?</div>
+            <div class="msg bot-msg">ጤና ይስጥልኝ! እንዴት ልርዳዎት? I can help with recipes, prices, and orders!</div>
+        </div>
+        <div class="chat-options">
+            <button class="opt-btn" onclick="askBot('የዛሬ ዋጋ ስንት ነው?')">💰 ዋጋዎች</button>
+            <button class="opt-btn" onclick="askBot('ምርጥ አሰራር ንገረኝ')">🍳 አሰራር</button>
+            <button class="opt-btn" onclick="askBot('ትዕዛዝ እንዴት ነው?')">📦 ትዕዛዝ</button>
         </div>
         <div id="chatInputArea">
             <input type="text" id="userInput" placeholder="ጥያቄዎን እዚህ ይጻፉ..." onkeypress="if(event.key==='Enter') sendChat()">
@@ -155,8 +170,12 @@
 
         <input type="text" id="fullName" placeholder="ሙሉ ስም">
         <input type="tel" id="phone" placeholder="ስልክ ቁጥር">
-        <input type="text" id="address" placeholder="አድራሻ (ሰፈር/ልዩ ቦታ)">
-        <button class="checkout-btn" style="width:100%; margin-top:10px;" onclick="sendOrder()">ትዕዛዙን ላክ</button>
+        
+        <div class="loc-warning">
+            ⚠️ ትኩረት: ትክክለኛውን ቦታዎን (GPS Location) ካልላኩ ትዕዛዝዎን መቀበል አንችልም።
+        </div>
+
+        <button class="checkout-btn" style="width:100%; margin-top:10px; background:#1976D2;" onclick="getGeoAndSend()">📍 ፈቃድ ስጥና ትዕዛዝ ላክ</button>
         <button onclick="closeModal('checkoutModal')" style="width:100%; margin-top:10px; padding:10px; border:none; background:none; color:gray;">ተመለስ</button>
     </div>
 </div>
@@ -205,7 +224,6 @@
         { cat: "አትክልቶች", name: "ቆስጣ", price: 50, unit: "ጥቅል", emoji: "🌿" },
         { cat: "አትክልቶች", name: "ሰላጣ", price: 50, unit: "ጥቅል", emoji: "🥗" },
         { cat: "አትክልቶች", name: "ጎመን", price: 50, unit: "ጥቅል", emoji: "🥬" },
-
         { cat: "ፍራፍሬ", name: "ፓፓያ", price: 100, unit: "ኪሎ", emoji: "🥭" },
         { cat: "ፍራፍሬ", name: "ሐብሐብ", price: 80, unit: "ኪሎ", emoji: "🍉" },
         { cat: "ፍራፍሬ", name: "አቮካዶ", price: 130, unit: "ኪሎ", emoji: "🥑" },
@@ -217,7 +235,6 @@
         { cat: "ፍራፍሬ", name: "ማንዳሪን", price: 220, unit: "ኪሎ", emoji: "🍊" },
         { cat: "ፍራፍሬ", name: "ቲሪንጎ", price: 200, unit: "ኪሎ", emoji: "🍋" },
         { cat: "ፍራፍሬ", name: "ሙዝ", price: 70, unit: "ኪሎ", emoji: "🍌" },
-
         { cat: "ጥራጥሬና ባልቲና", name: "ባቄላ ድፍን", price: 150, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
         { cat: "ጥራጥሬና ባልቲና", name: "ባቄላ የፉል", price: 200, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
         { cat: "ጥራጥሬና ባልቲና", name: "ሽንብራ ነጭ", price: 160, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
@@ -249,7 +266,6 @@
         { cat: "ጥራጥሬና ባልቲና", name: "በሶ የተፈጨ", price: 200, unit: "ኪሎ", emoji: "🥤", isTiratire: true },
         { cat: "ጥራጥሬና ባልቲና", name: "ምስር ክክ", price: 230, unit: "ኪሎ", emoji: "🫘", isTiratire: true },
         { cat: "ጥራጥሬና ባልቲና", name: "ጨው የታሸገ", price: 25, unit: "አንድ", emoji: "🧂" },
-
         { cat: "ስጋ", name: "ጥሬ ስጋ", price: 1200, unit: "ኪሎ", emoji: "🥩" },
         { cat: "ስጋ", name: "ጎድን", price: 600, unit: "ኪሎ", emoji: "🦴" }
     ];
@@ -258,13 +274,25 @@
         { name: "ምስር (Misir)", items: ["ምስር ክክ", "ቀይ ሽንኩርት", "በርበሬ የተፈጨ"], steps: "1. ሽንኩርት ማቁላላት። 2. በርበሬ ጨምሮ በደንብ ማብሰል። 3. ምስሩን ጨምሮ ውሃ በመጠኑ በማድረግ ማብሰል።" },
         { name: "ድንች (Dinich)", items: ["ድንች", "ቀይ ሽንኩርት", "ቃሪያ"], steps: "1. ድንቹን መክተፍና ማጠብ። 2. ሽንኩርት አቁላልቶ ድንቹን መጨመር። 3. ቃሪያ መጨመር።" },
         { name: "ሽሮ (Shiro)", items: ["ሚጥን ሽሮ", "ቀይ ሽንኩርት", "ቲማቲም"], steps: "1. ሽንኩርትና ቲማቲም ማቁላላት። 2. ሽሮውን በውሃ በጥብጦ መጨመር። 3. ተንተክትኮ እስኪበስል መጠበቅ።" },
-        { name: "ሰላጣ (Salata)", items: ["ሰላጣ", "ቲማቲም", "ቃሪያ", "ቀይ ሽንኩርት"], steps: "1. ሰላጣውን መክተፍ። 2. ሽንኩርትና ቲማቲም ቀላቅሎ በሎሚና ዘይት ማቅረብ።" }
+        { name: "ሰላጣ (Salata)", items: ["ሰላጣ", "ቲማቲም", "ቃሪያ", "ቀይ ሽንኩርት"], steps: "1. ሰላጣውን መክተፍ። 2. ሽንኩርትና ቲማቲም ቀላቅሎ በሎሚና ዘይት ማቅረብ።" },
+        { name: "ቆስጣ (Qosta)", items: ["ቆስጣ", "ነጭ ሽንኩርት", "ቀይ ሽንኩርት"], steps: "1. ቆስጣውን መክተፍና ማብሰል። 2. በሽንኩርትና ነጭ ሽንኩርት ማቁላላት።" },
+        { name: "ጥብስ (Tibs)", items: ["ጥሬ ስጋ", "ቀይ ሽንኩርት", "ቃሪያ", "ነጭ ሽንኩርት"], steps: "1. ስጋውን መክተፍ። 2. በሽንኩርትና ነጭ ሽንኩርት በደንብ ማቁላላት። 3. መጨረሻ ላይ ቃሪያ መጨመር።" },
+        { name: "ቅቅል (Kikil)", items: ["ጎድን", "ዝንጅብል", "ነጭ ሽንኩርት"], steps: "1. ስጋውን መክተፍ። 2. ከቅመማ ቅመሞች ጋር በውሃ በደንብ ማብሰል።" },
+        { name: "ጥቅል ጎመን (Tikil Gomen)", items: ["ጥቅል ጎመን", "ካሮት", "ድንች"], steps: "1. ሁሉንም መክተፍ። 2. ሽንኩርት አቁላልቶ አንድ ላይ ማብሰል።" },
+        { name: "ምስር በድንች (Misir be Dinich)", items: ["ምስር ክክ", "ድንች", "ቀይ ሽንኩርት"], steps: "1. ምስርና ድንች አብሮ ማብሰል። 2. ሽንኩርትና በርበሬ ጨምሮ በደንብ ማቁላላት።" },
+        { name: "ጎመን በስጋ (Gomen be Siga)", items: ["ጎመን", "ጥሬ ስጋ", "ቀይ ሽንኩርት"], steps: "1. ጎመኑን ለብቻ ማብሰል። 2. ስጋውን በሽንኩርት አቁላልቶ ጎመኑን መጨመር።" },
+        { name: "ጎመን (Gomen)", items: ["ጎመን", "ነጭ ሽንኩርት", "ቀይ ሽንኩርት"], steps: "1. ጎመኑን ማጠብና መክተፍ። 2. በሽንኩርትና ነጭ ሽንኩርት አቁላልቶ ማብሰል።" }
     ];
 
-    // AI LOGIC
+    // --- AI LOGIC ---
     function toggleChat() {
         const chat = document.getElementById('chatBox');
         chat.style.display = chat.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function askBot(query) {
+        document.getElementById('userInput').value = query;
+        sendChat();
     }
 
     function sendChat() {
@@ -275,18 +303,17 @@
         appendMsg(text, 'user-msg');
         input.value = '';
 
-        // Simulate AI Knowledge
-        let reply = "ይቅርታ፣ ጥያቄዎ አልገባኝም። ስለ ምርቶች ወይም አሰራር ሊጠይቁኝ ይችላሉ።";
-        const lowerText = text.toLowerCase();
+        let reply = "ጥያቄዎን በደንብ አልተረዳሁትም (Can you clarify?). ስለ ምርቶች፣ አሰራር ወይም ትዕዛዝ መጠየቅ ይችላሉ።";
+        const lowText = text.toLowerCase();
 
-        if (lowerText.includes("ዋጋ") || lowerText.includes("ስንት")) {
-            reply = "በገበያ ገጽ ላይ ሁሉንም ዋጋዎች ማግኘት ይችላሉ። ለምሳሌ ድንች 35 ብር ነው።";
-        } else if (lowerText.includes("አሰራር") || lowerText.includes("ሙያ")) {
-            reply = "በሙያ ገጽ ላይ ምርጥ የአሰራር ዘዴዎችን አስቀምጠናል! ምስር፣ ሽሮ እና ሌሎችም አሉ።";
-        } else if (lowerText.includes("ሰላም") || lowerText.includes("ጤና")) {
-            reply = "ሰላም! በምን ልርዳዎት?";
-        } else if (lowerText.includes("ትዕዛዝ")) {
-            reply = "ዕቃዎችን መርጠው 'ትዕዛዝ ጨርሻለሁ' የሚለውን በመጫን ማዘዝ ይችላሉ።";
+        if (lowText.includes("ዋጋ") || lowText.includes("price") || lowText.includes("how much")) {
+            reply = "በገበያ ገጽ ላይ ዝርዝር ዋጋ አለ። ለምሳሌ ድንች 35 ብር፣ ቲማቲም 30 ብር ነው። የትኛውን ማወቅ ይፈልጋሉ?";
+        } else if (lowText.includes("አሰራር") || lowText.includes("recipe") || lowText.includes("cook")) {
+            reply = "በሙያ ገጽ ላይ 11 የሚሆኑ ጣፋጭ አሰራሮችን አስቀምጫለሁ! ሽሮ፣ ምስር፣ ጥብስ... የትኛውን ላሳይዎት?";
+        } else if (lowText.includes("ሰላም") || lowText.includes("hello") || lowText.includes("hi")) {
+            reply = "ሰላም! የቢሼ ገበያ ብልህ ረዳት ነኝ። በምን ልርዳዎት?";
+        } else if (lowText.includes("ትዕዛዝ") || lowText.includes("order")) {
+            reply = "ምርቶችን መርጠው 'ትዕዛዝ ጨርሻለሁ' የሚለውን በመጫን ይዘዙ። የግድ ካርታ (Location) መላክ አለብዎት።";
         }
 
         setTimeout(() => appendMsg(reply, 'bot-msg'), 500);
@@ -301,7 +328,33 @@
         container.scrollTop = container.scrollHeight;
     }
 
-    // PRODUCT LOGIC
+    // --- GEOLOCATION LOGIC ---
+    function getGeoAndSend() {
+        const name = document.getElementById('fullName').value;
+        const phone = document.getElementById('phone').value;
+        
+        if(!name || !phone) return alert("እባክዎ ስም እና ስልክ ቁጥር ይሙሉ");
+
+        if (navigator.geolocation) {
+            alert("የእርሶን መገኛ (GPS) እንዲልኩ ፈቃድ የሚጠይቅ መልዕክት ሲመጣ 'Allow/ፈቀድ' የሚለውን ይጫኑ።");
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                    sendOrder(name, phone, mapLink);
+                },
+                (error) => {
+                    alert("ትዕዛዝ ለመላክ የካርታ (Location) ፈቃድ መስጠት ግዴታ ነው። እባክዎ በስልክዎ Settings ውስጥ ፈቃድ ይስጡ።");
+                },
+                { enableHighAccuracy: true }
+            );
+        } else {
+            alert("ይቅርታ፣ የእርስዎ ስልክ የካርታ መረጃ መላክ አይችልም።");
+        }
+    }
+
+    // --- PRODUCT & RECIPE LOGIC ---
     function renderProducts() {
         const container = document.getElementById('productSections');
         const categories = ["አትክልቶች", "ፍራፍሬ", "ጥራጥሬና ባልቲና", "ስጋ"];
@@ -344,12 +397,33 @@
 
     function removeLastItem() { cart.pop(); updateCartUI(); }
 
+    function pickRecipe(recipeName) {
+        const r = recipes.find(rec => rec.name === recipeName);
+        r.items.forEach(itemName => {
+            const p = products.find(prod => prod.name === itemName);
+            if(p) addToCart(products.indexOf(p), 1, "1 " + p.unit);
+        });
+        alert(recipeName + " ግብዓቶች ታክለዋል።");
+    }
+
+    function unpickRecipe(recipeName) {
+        const r = recipes.find(rec => rec.name === recipeName);
+        r.items.forEach(itemName => {
+            const index = cart.findIndex(item => item.name === itemName);
+            if (index > -1) cart.splice(index, 1);
+        });
+        updateCartUI();
+        alert(recipeName + " ግብዓቶች ተቀንሰዋል።");
+    }
+
     function updateCartUI() {
         document.getElementById('cartBar').style.display = cart.length > 0 ? 'flex' : 'none';
         products.forEach((p, i) => {
-            const count = cart.filter(item => products.indexOf(p) === products.indexOf(item)).length;
+            const count = cart.filter(item => item.name === p.name).length;
             const badge = document.getElementById(`badge-${i}`);
-            if(count > 0) { badge.innerText = count; badge.style.display = 'block'; } else { badge.style.display = 'none'; }
+            if(badge) {
+                if(count > 0) { badge.innerText = count; badge.style.display = 'block'; } else { badge.style.display = 'none'; }
+            }
         });
     }
 
@@ -361,24 +435,33 @@
         document.getElementById('checkoutModal').style.display = 'flex';
     }
 
-    function sendOrder() {
-        const name = document.getElementById('fullName').value;
-        const phone = document.getElementById('phone').value;
-        const address = document.getElementById('address').value;
-        if(!name || !phone || !address) return alert("እባክዎ ሁሉንም መረጃ ይሙሉ");
-        let msg = `🛒 *አዲስ ትዕዛዝ*\n👤 ስም: ${name}\n📞 ስልክ: ${phone}\n📍 አድራሻ: ${address}\n\n`;
+    function sendOrder(name, phone, mapLink) {
+        let msg = `🛒 *አዲስ ትዕዛዝ*\n👤 ስም: ${name}\n📞 ስልክ: ${phone}\n📍 መገኛ: ${mapLink}\n\n`;
         let total = 0;
         cart.forEach(i => { msg += `• ${i.emoji} ${i.name} (${i.qtyLabel}) - ${i.totalCost.toFixed(2)} ብር\n`; total += i.totalCost; });
         msg += `\n🚚 መላኪያ: 150 ብር\n💰 *ጠቅላላ: ${(total + 150).toFixed(2)} ብር*`;
+        
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`)
-        .then(() => { alert("ትዕዛዝዎ ተልኳል! በቅርቡ እንደውላለን።"); cart = []; updateCartUI(); closeModal('checkoutModal'); });
+        .then(() => { 
+            alert("ትዕዛዝዎ በካርታ ታግዞ ተልኳል! በቅርቡ እንደውላለን።"); 
+            cart = []; 
+            updateCartUI(); 
+            closeModal('checkoutModal'); 
+        });
     }
 
     function renderRecipes() {
         const list = document.getElementById('recipeList'); list.innerHTML = "";
         recipes.forEach(r => {
             let cost = 0; r.items.forEach(itemName => { const p = products.find(prod => prod.name === itemName); if(p) cost += p.price; });
-            list.innerHTML += `<div class="recipe-card"><div style="font-size: 20px; font-weight: bold; color:var(--primary)">${r.name}</div><div style="font-size: 14px; color: #777; margin-top:5px;"><b>ግብዓቶች:</b> ${r.items.join(", ")}</div><div class="recipe-steps"><b>አሰራር:</b> ${r.steps}</div><div class="recipe-price">የግብዓቶች ዋጋ: ~${cost.toFixed(2)} ብር</div></div>`;
+            list.innerHTML += `<div class="recipe-card">
+                <button class="unpick-btn" onclick="unpickRecipe('${r.name}')">✖ Unpick</button>
+                <div style="font-size: 20px; font-weight: bold; color:var(--primary)">${r.name}</div>
+                <div style="font-size: 14px; color: #777; margin-top:5px;"><b>ግብዓቶች:</b> ${r.items.join(", ")}</div>
+                <div class="recipe-steps"><b>አሰራር:</b> ${r.steps}</div>
+                <div class="recipe-price">የግብዓቶች ዋጋ: ~${cost.toFixed(2)} ብር</div>
+                <button class="checkout-btn" style="width:100%; margin-top:10px; font-size:14px;" onclick="pickRecipe('${r.name}')">🛒 ግብዓቶችን ግዛ</button>
+            </div>`;
         });
     }
 
