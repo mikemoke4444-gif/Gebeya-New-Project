@@ -3,621 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ገበያ - ቢሾፍቱ</title>
+    <title>ገበያ - ሙያና ምቾት</title>
     <style>
-        :root {
-            --primary: #5D4037; /* ጥቁር ቡናማ/ቡና */
-            --secondary: #FFAB40; /* ብርቱካናማ ለጉልህ ነገሮች */
-            --bg: #F5F5F5; /* ክፍት ቦታ ቀለም */
-            --text: #333;
-            --count-bg: #4CAF50; /* አረንጓዴ ለቁጥር */
-        }
-        body {
-            font-family: 'Nyala', 'Abyssinica SIL', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg);
-            color: var(--text);
-            padding-bottom: 80px;
-            line-height: 1.5;
-        }
+        :root { --primary: #5D4037; --secondary: #FFAB40; --bg: #F5F5F5; --text: #333; --green: #4CAF50; }
+        body { font-family: 'Nyala', sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 1000; }
+        .tabs { display: flex; background: white; position: sticky; top: 60px; z-index: 999; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; border-bottom: 3px solid transparent; }
+        .tab.active { border-bottom: 3px solid var(--secondary); color: var(--secondary); }
+        .container { padding: 15px; max-width: 800px; margin: auto; }
+        .category-title { background: #eee; padding: 10px; margin: 20px 0 10px; border-radius: 5px; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .card { background: white; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; }
+        .card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
+        .price { color: var(--primary); font-weight: bold; font-size: 14px; }
         
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 25px 0;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        h1 { margin: 0; font-size: 32px; letter-spacing: 2px; }
-        p.subtitle { margin: 5px 0 0; font-size: 18px; opacity: 0.9; }
+        /* Quantity Modal */
+        #qtyModal, #checkoutModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2001; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+        .qty-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .qty-btn { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; cursor: pointer; }
         
-        .container { padding: 20px; max-width: 700px; margin: auto; }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-            cursor: pointer;
-            position: relative; /* ለ Count Badge ያስፈልጋል */
-        }
-        .card:hover { transform: translateY(-5px); }
-        
-        .product-emoji {
-            font-size: 40px;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        /* --- አዲስ የ Count Badge CSS --- */
-        .item-count-badge {
-            position: absolute;
-            top: -10px; 
-            right: -10px;
-            background-color: var(--count-bg);
-            color: white;
-            border-radius: 50%;
-            padding: 5px 10px;
-            font-size: 16px;
-            font-weight: bold;
-            display: none; /* በመጀመሪያ ይደበቃል */
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
-        /* --- የ Count Badge CSS መጨረሻ --- */
-
-        .name { font-weight: bold; font-size: 18px; margin-bottom: 5px; display: block;}
-        .price { color: var(--primary); font-weight: bold; font-size: 16px; }
-        .add-btn {
-            background-color: var(--secondary);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 25px;
-            margin-top: 10px;
-            width: 100%;
-            font-size: 16px;
-        }
-
-        .remove-btn {
-            background-color: #D32F2F;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-size: 12px;
-            margin-left: 10px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .remove-btn:hover {
-            background-color: #C62828;
-        }
-
-        .not-listed-area {
-            text-align: center;
-            padding: 20px 0;
-        }
-        #notListedBtn {
-            background-color: #008080;
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        #checkoutModal, #requestModal { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(0,0,0,0.5); 
-            z-index: 2000; 
-            justify-content: center; 
-            align-items: flex-end; /* ወደ ግርጌ ያሰልፋል */
-        }
-        .modal-content {
-            background: white;
-            width: 100%;
-            max-width: 650px;
-            padding: 25px;
-            border-radius: 20px 20px 0 0;
-            box-sizing: border-box;
-            max-height: 90vh; 
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; 
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0 15px 0;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 18px;
-        }
-        .confirm-btn {
-            padding: 18px;
-            font-size: 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            width: 100%;
-            cursor: pointer;
-        }
-        
-        .cart-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%; 
-            background: white; padding: 10px 15px; 
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
-            display: flex; 
-            justify-content: center;
-            align-items: center; 
-            box-sizing: border-box;
-        }
-        
-        .cart-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .unpick-all-btn {
-            background-color: #EF5350;
-            color: white;
-            border: none; 
-            padding: 10px 15px; 
-            border-radius: 20px; 
-            font-size: 16px; 
-            cursor: pointer;
-        }
-
-        .checkout-btn {
-            background-color: #4CAF50; 
-            color: white; 
-            border: none; 
-            padding: 10px 20px; 
-            border-radius: 20px; 
-            font-size: 16px; 
-            cursor: pointer;
-        }
-
+        .cart-bar { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; display: none; justify-content: space-around; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
+        .btn-main { background: var(--green); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 16px; }
+        .recipe-card { border-left: 5px solid var(--secondary); margin-bottom: 15px; padding: 10px; background: #fffde7; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>ገበያ (Gebeya)</h1>
-    <p class="subtitle">በቢሾፍቱ ምርጥ ግሮሰሪ - በፍጥነትና በቀላሉ!</p>
+    <h1 id="mainTitle">ቢሾፍቱ ገበያ</h1>
 </header>
 
-<div class="container">
-    <div class="grid" id="productGrid">
-        </div>
-
-    <div class="not-listed-area">
-        <button id="notListedBtn" onclick="openRequestModal()">እዚህ የሌለ ነገር አለ? ጠይቅ!</button>
-    </div>
+<div class="tabs">
+    <div class="tab active" onclick="switchPage('shop')">ገበያ</div>
+    <div class="tab" onclick="switchPage('muya')">የሙያ ገጽ (Recipe)</div>
 </div>
 
-<div class="cart-bar" id="cartBar" style="display:none;">
-    <div class="cart-actions">
-        <button class="unpick-all-btn" onclick="clearCart()">🗑️ አትምረጥ (ሁሉንም)</button>
-        <button class="checkout-btn" onclick="openCheckout()">✅ ጨርሰሃል? እዘዝ</button>
-    </div>
+<div id="shopPage" class="container">
+    <div id="productContainer"></div>
+    <button onclick="openCheckout()" style="width:100%; padding:15px; background:#008080; color:white; border:none; border-radius:10px; margin-top:20px;">➕ እዚህ የሌለ ዕቃ ጠይቅ / እዘዝ</button>
 </div>
 
-<div id="checkoutModal" style="display:none;">
+<div id="muyaPage" class="container" style="display:none;">
+    <h2 style="text-align:center; color:var(--primary);">ምርጥ የቤት ውስጥ ሙያዎች</h2>
+    <div id="recipeContainer"></div>
+</div>
+
+<div id="qtyModal">
     <div class="modal-content">
-        <button class="close-btn" onclick="closeCheckout()">✖ ዝጋ</button>
-        <h2 style="font-size: 24px;">ትዕዛዝ ማረጋገጫ</h2>
-        
-        <div class="summary" id="orderSummary" style="font-size: 18px;"></div>
-        
-        <h3 style="color: #4CAF50;">ለክፍያ አማራጮች</h3>
-        <p style="font-size: 16px;">
-            **ክፍያ:** በCBE ባንክ አካውንት በቅድሚያ።<br>
-            **CBE አካውንት ቁጥር:** **1000446752387**<br>
-            **ስልክ ቁጥር:** **0962636940**
-        </p>
-        <hr>
-
-        <label for="fullName">ሙሉ ስም</label>
-        <input type="text" id="fullName" placeholder="ስምዎን ያስገቡ...">
-        
-        <label for="phone">ስልክ ቁጥር</label>
-        <input type="tel" id="phone" placeholder="09...">
-
-        <label for="address">ሰፈር / ልዩ ቦታ</label>
-        <input type="text" id="address" placeholder="ምሳሌ፡ ቢሾፍቱ፣ ዋና መንገድ አካባቢ...">
-
-        <div style="text-align: center; margin-top: 10px; margin-bottom: 5px;">
-            <p id="locationStatus" style="font-size: 14px;"></p>
-        </div>
-
-        <hr>
-        <p style="font-size: 14px; color: gray;">* ማረጋገጫውን ሲጫኑ ትዕዛዙ ወዲያውኑ ይላክልናል።</p>
-        
-        <button class="confirm-btn" onclick="sendOrder()">✅ አረጋግጥና ላክ</button>
+        <h3 id="qtyTitle">ብዛት ይምረጡ</h3>
+        <div class="qty-grid" id="qtyOptions"></div>
+        <button onclick="closeQty()" style="width:100%; margin-top:15px; padding:10px; background:#eee; border:none; border-radius:5px;">ተመለስ</button>
     </div>
 </div>
 
-<div id="requestModal" style="display:none;">
+<div id="checkoutModal">
     <div class="modal-content">
-        <button class="close-btn" onclick="closeRequestModal()">✖ ዝጋ</button>
-        <h2 style="font-size: 24px;">ያልተዘረዘረ ዕቃ ይጠይቁ</h2>
-        
-        <label for="requestText">የሚፈልጉትን ዕቃ ይጻፉ</label>
-        <textarea id="requestText" rows="4" placeholder="ምሳሌ: 2 ኪሎ ጥሬ ሥጋ፣ የፍየል ወተት፣ ..."></textarea>
-        
-        <label for="requestPhone">ስልክ ቁጥር</label>
-        <input type="tel" id="requestPhone" placeholder="09...">
-
-        <button class="confirm-btn" onclick="sendRequest()">ላክልኝ</button>
+        <h2>የትዕዛዝ ማጠቃለያ</h2>
+        <div id="orderSummary"></div>
+        <textarea id="extraItems" rows="3" placeholder="እዚህ የሌለ ተጨማሪ ነገር ካለ..."></textarea>
+        <input type="text" id="custName" placeholder="ሙሉ ስም">
+        <input type="tel" id="custPhone" placeholder="ስልክ ቁጥር">
+        <button class="btn-main" style="width:100%;" onclick="sendOrder()">✅ ትዕዛዙን አረጋግጥ</button>
+        <button onclick="closeCheckout()" style="width:100%; background:none; border:none; color:red; margin-top:10px;">ዝጋ</button>
     </div>
+</div>
+
+<div class="cart-bar" id="cartBar">
+    <span id="cartCount" style="font-weight:bold;"></span>
+    <button class="btn-main" onclick="openCheckout()">🛒 ትዕዛዝዎን ይጨርሱ</button>
 </div>
 
 <script>
-    // ⚠️⚠️⚠️ የቴሌግራም መረጃዎች (በግልጽ የሚታዩ!) ⚠️⚠️⚠️
-    const TELEGRAM_BOT_TOKEN = "8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A"; 
-    const TELEGRAM_CHAT_ID = "5229826685";  
-    const YOUR_TELEGRAM_USERNAME = "@Mikemoke"; 
-    // ------------------------------------------------------------------
+const products = [
+    // አትክልቶች (Vegetables)
+    { id:1, cat: "አትክልት", name: "ፎሶሊያ", price: 100, unit: "kg", emoji: "🌿" },
+    { id:2, cat: "አትክልት", name: "ጃምበርጃን", price: 60, unit: "kg", emoji: "🍆" },
+    { id:3, cat: "አትክልት", name: "ካሮት", price: 70, unit: "kg", emoji: "🥕" },
+    { id:4, cat: "አትክልት", name: "ቃሪያ", price: 150, unit: "kg", emoji: "🌶️" },
+    { id:5, cat: "አትክልት", name: "ባሮ ሽንኩርት", price: 120, unit: "kg", emoji: "🧅" },
+    { id:6, cat: "አትክልት", name: "ባሮ ቅጠል", price: 100, unit: "kg", emoji: "🍃" },
+    { id:7, cat: "አትክልት", name: "ኪያር", price: 140, unit: "kg", emoji: "🥒" },
+    { id:8, cat: "አትክልት", name: "ዝኩኒ", price: 60, unit: "kg", emoji: "🥒" },
+    { id:9, cat: "አትክልት", name: "አበባ ጎመን", price: 100, unit: "kg", emoji: "🥦" },
+    { id:10, cat: "አትክልት", name: "ቀይ ስር", price: 40, unit: "kg", emoji: "🥔" },
+    { id:11, cat: "አትክልት", name: "ቲማቲም", price: 30, unit: "kg", emoji: "🍅" },
+    { id:12, cat: "አትክልት", name: "ጥቅል ጎመን", price: 40, unit: "one", emoji: "🥬" },
+    { id:13, cat: "አትክልት", name: "ሮዝመሪ", price: 20, unit: "kg", emoji: "🌿" },
 
-    // --- የክፍያ መረጃ ---
-    const MY_PHONE_NUMBER = "0962636940";
-    const MY_CBE_ACCOUNT = "1000446752387";
-    // ------------------------------------------
+    // ፍራፍሬዎች (Fruits)
+    { id:50, cat: "ፍራፍሬ", name: "ፓፓዬ", price: 100, unit: "kg", emoji: "🥭" },
+    { id:51, cat: "ፍራፍሬ", name: "ሐብሐብ", price: 80, unit: "kg", emoji: "🍉" },
+    { id:52, cat: "ፍራፍሬ", name: "አቮካዶ", price: 130, unit: "kg", emoji: "🥑" },
+    { id:53, cat: "ፍራፍሬ", name: "ማንጎ", price: 150, unit: "kg", emoji: "🥭" },
+    { id:54, cat: "ፍራፍሬ", name: "ስትሮውቤሪ", price: 220, unit: "kg", emoji: "🍓" },
+    { id:55, cat: "ፍራፍሬ", name: "ሎሚ", price: 200, unit: "kg", emoji: "🍋" },
 
-    let savedLocation = null; 
-    let cart = {};
-    const deliveryFee = 150; 
+    // ባልትና እና ጥራጥሬ (Tiratire/Baltina - Rub Agamash applied)
+    { id:100, cat: "ጥራጥሬና ባልትና", name: "ምጥን ሽሮ", price: 440, unit: "kg", emoji: "🍲", special: true },
+    { id:101, cat: "ጥራጥሬና ባልትና", name: "በርበሬ", price: 1200, unit: "kg", emoji: "🌶️", special: true },
+    { id:102, cat: "ጥራጥሬና ባልትና", name: "ምስር ክክ", price: 230, unit: "kg", emoji: "🥣", special: true },
+    { id:103, cat: "ጥራጥሬና ባልትና", name: "ተልባ", price: 500, unit: "kg", emoji: "🍪", special: true },
+    { id:104, cat: "ጥራጥሬና ባልትና", name: "ሚጥሚጣ", price: 800, unit: "kg", emoji: "🔥", special: true }
+];
 
-    const products = [
-        // --- ፍራፍሬዎች እና አትክልቶች ---
-        { name: "ድንች", price: 35, unit: "ኪሎ", emoji: "🥔" },
-        { name: "ቲማቲም", price: 30, unit: "ኪሎ", emoji: "🍅" },
-        { name: "ቀይ ሽንኩርት", price: 35, unit: "ኪሎ", emoji: "🧅" },
-        { name: "ካሮት", price: 100, unit: "ኪሎ", emoji: "🥕" },
-        { name: "ቃሪያ", price: 200, unit: "ኪሎ", emoji: "🌶️" },
-        { name: "ነጭ ሽንኩርት", price: 300, unit: "ኪሎ", emoji: "🧄" },
-        { name: "ዝንጅብል", price: 200, unit: "ኪሎ", emoji: "🫚" },
-        { name: "ጥቅል ጎመን", price: 50, unit: "አንድ", emoji: "🥬" },
-        { name: "ሰላጣ", price: 50, unit: "ጥቅል", emoji: "🥗" },
-        { name: "ጎመን", price: 50, unit: "ጥቅል", emoji: "🥬" },
-        { name: "ቆስጣ", price: 50, unit: "ጥቅል", emoji: "🌿" },
-        { name: "ሙዝ", price: 70, unit: "ኪሎ", emoji: "🍌"},
-        { name: "አፕል", price: 450, unit: "ጥቅል", emoji: "🍎"},
-        { name: "አቮካዶ", price: 120, unit: "ኪሎ", emoji: "🥑"},
-        { name: "ፓፓያ", price: 130, unit: "ኪሎ", emoji: "🥭"},
-        { name: "ሐብሐብ", price: 120, unit: "ኪሎ", emoji: "🍉"},
-        { name: "ሐብሐብ (ሙሉ)", price: 580, unit: "አንድ", emoji: "🍉"}, 
+const recipes = [
+    { name: "ምርጥ ምስር በድንች", items: ["ምስር ክክ", "ድንች", "በርበሬ"], total: 550, img: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400" },
+    { name: "አቮካዶ ሳላጣ (Healthy)", items: ["አቮካዶ", "ቲማቲም", "ቃሪያ", "ሎሚ"], total: 350, img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400" },
+    { name: "የአትክልት ክክላ (Mixed)", items: ["ካሮት", "ፎሶሊያ", "ድንች"], total: 400, img: "https://images.unsplash.com/photo-1566843972142-a7fcb70de55a?w=400" }
+];
 
-        // --- ግሮሰሪ እና መጠጦች ---
-        { name: "ቡና", price: 1400, unit: "ኪሎ", emoji: "☕" },
-        { name: "የወይራ ዘይት", price: 1400, unit: "1 ሊትር", emoji: "🫒" },
-        { name: "ዘይት (ማብሰያ)", price: 1950, unit: "5 ሊትር", emoji: "🍾" }, 
-        { name: "ስኳር", price: 150, unit: "ኪሎ", emoji: "🍚" }, 
-        { name: "ኤልሳ ቆሎ", price: 680, unit: "ኪሎ", emoji: "🥜"},
-        { name: "ዱቄት", price: 120, unit: "ኪሎ", emoji: "🌾"},
-        { name: "ፓስታ", price: 100, unit: "አንድ", emoji: "🍝"}, 
-        { name: "Juice", price: 90, unit: "1 ሊትር", emoji: "🍹"}, 
+let cart = [];
+let currentItem = null;
 
-        // --- ስጋ እና ፕሮቲን ---
-        { name: "ሥጋ", price: 1200, unit: "ኪሎ", emoji: "🥩" },
-        { name: "ጎድን", price: 600, unit: "ኪሎ", emoji: "🦴" },
-        { name: "ዶሮ", price: 650, unit: "ሙሉ", emoji: "🐔" }, 
-
-        // --- መክሰስ እና ሌሎች ---
-        { name: "ላርጎ (ፈሳሽ ሳሙና)", price: 650, unit: "5 ሊትር", emoji: "🧺" }, 
-        { name: "ዳይፐር (Size 5)", price: 650, unit: "ፓኬት", emoji: "👶" }, 
-        { name: "ቺፕስ", price: 25, unit: "አንድ", emoji: "🥔" },
-        { name: "ቸኮሌት", price: 50, unit: "አንድ", emoji: "🍫" },
-        { name: "QQ Snack", price: 20, unit: "አንድ", emoji: "🍟" }, 
-    ];
-
-
-    // --- የምርት ዝርዝር መፍጠሪያ (Initial Render) ---
-    const productGrid = document.getElementById('productGrid');
-    products.forEach((p, index) => {
-        productGrid.innerHTML += `
-            <div class="card" onclick="addToCart(${index})" data-index="${index}">
-                <span class="item-count-badge" id="count-badge-${index}">0</span>
+function renderShop() {
+    const container = document.getElementById('productContainer');
+    const categories = [...new Set(products.map(p => p.cat))];
+    container.innerHTML = "";
+    categories.forEach(cat => {
+        container.innerHTML += `<div class="category-title">${cat}</div><div class="grid">` + 
+        products.filter(p => p.cat === cat).map(p => `
+            <div class="card" onclick="openQty(${p.id})">
                 <span class="product-emoji">${p.emoji}</span>
-                <span class="name">${p.name}</span>
-                <div class="price">${p.price} ብር / ${p.unit}</div>
-                <button class="add-btn">ወደ ቅርጫት ጨምር</button>
+                <div style="font-weight:bold">${p.name}</div>
+                <div class="price">${p.price} ብር/${p.unit}</div>
             </div>
-        `;
+        `).join('') + `</div>`;
     });
-    // --- የምርት ዝርዝር መፍጠሪያ መጨረሻ ---
+}
 
+function renderRecipes() {
+    const container = document.getElementById('recipeContainer');
+    container.innerHTML = recipes.map(r => `
+        <div class="recipe-card" onclick="addRecipe(${recipes.indexOf(r)})">
+            <img src="${r.img}" style="width:100%; border-radius:8px;">
+            <h3>${r.name}</h3>
+            <p>ውስጡ፡ ${r.items.join(', ')}</p>
+            <div class="price">ጠቅላላ ዋጋ፡ ${r.total} ብር</div>
+            <button class="btn-main" style="margin-top:10px;">ይህን ሙያ እዘዝ</button>
+        </div>
+    `).join('');
+}
 
-    // --- የቦታ ጥያቄ (Geolocation Logic) ---
-    document.addEventListener('DOMContentLoaded', (event) => {
-        if (navigator.geolocation) {
-            const statusDiv = document.getElementById('locationStatus');
-            statusDiv.style.color = "#FFAB40"; 
-            statusDiv.textContent = "⏳ የአካባቢ መረጃዎን በመጠየቅ ላይ...";
-            
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    savedLocation = {
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude
-                    };
-                    document.getElementById('address').value = `GPS Location Acquired.`;
-                    statusDiv.textContent = "✅ ትክክለኛ ቦታ ተቀምጧል!";
-                    statusDiv.style.color = "#4CAF50"; 
-                },
-                (error) => {
-                    statusDiv.textContent = "❌ የአካባቢ ፍቃድ አልተሰጠም። እባክዎ በእጅዎ ይጻፉ።";
-                    statusDiv.style.color = "#D32F2F"; 
-                    savedLocation = null;
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 20000, 
-                    maximumAge: 60000 
-                }
-            );
-        }
-        // ገጹ ሲጫን የካርድ ቆጣሪዎችን አንዴ ያዘምናል
-        updateCardBadges();
-    });
+function switchPage(page) {
+    document.getElementById('shopPage').style.display = page === 'shop' ? 'block' : 'none';
+    document.getElementById('muyaPage').style.display = page === 'muya' ? 'block' : 'none';
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+}
 
-    // --- ተግባራት (Functions) ---
-
-    // የካርዶችን ብዛት የሚያሳይ ተግባር
-    function updateCardBadges() {
-        products.forEach((p, index) => {
-            const badge = document.getElementById(`count-badge-${index}`);
-            const count = cart[index] || 0;
-            if (badge) {
-                badge.textContent = count;
-                badge.style.display = count > 0 ? 'block' : 'none';
-            }
-        });
+function openQty(id) {
+    currentItem = products.find(p => p.id === id);
+    document.getElementById('qtyTitle').innerText = `${currentItem.name} - መጠን ይምረጡ`;
+    const opts = document.getElementById('qtyOptions');
+    let html = `
+        <button class="qty-btn" onclick="addToCart(5)">5 kg</button>
+        <button class="qty-btn" onclick="addToCart(1)">1 kg</button>
+        <button class="qty-btn" onclick="addToCart(0.5)">ግማሽ (0.5)</button>
+        <button class="qty-btn" onclick="addToCart(0.25)">ሩብ (0.25)</button>
+    `;
+    if(currentItem.special) {
+        html += `<button class="qty-btn" onclick="addToCart(0.125)">ሩብ አጋማሽ (1/8)</button>`;
     }
+    opts.innerHTML = html;
+    document.getElementById('qtyModal').style.display = 'flex';
+}
 
-    // እቃ መጨመር (Add) - በአንድ ጊዜ 1 ይጨምራል
-    function addToCart(index) {
-        if (!cart[index]) cart[index] = 0;
-        cart[index]++;
-        updateCartUI();
-        updateCardBadges(); // የካርድ ቆጣሪውን ያዘምናል
-        if (navigator.vibrate) navigator.vibrate(50);
+function addToCart(qty) {
+    const itemPrice = currentItem.price * qty;
+    cart.push({ ...currentItem, pickedQty: qty, finalPrice: itemPrice });
+    document.getElementById('qtyModal').style.display = 'none';
+    updateCartUI();
+}
+
+function addRecipe(index) {
+    const r = recipes[index];
+    cart.push({ name: `Recipe: ${r.name}`, finalPrice: r.total, pickedQty: 1, emoji: "🍳" });
+    updateCartUI();
+    alert(`የ${r.name} ግብዓቶች ወደ ቅርጫት ተጨምረዋል!`);
+}
+
+function updateCartUI() {
+    const bar = document.getElementById('cartBar');
+    if(cart.length > 0) {
+        bar.style.display = 'flex';
+        document.getElementById('cartCount').innerText = `${cart.length} ዕቃዎች ተመርጠዋል`;
     }
+}
 
-    // እቃ መቀነስ (Remove) - በአንድ ጊዜ 1 ይቀንሳል
-    function removeFromCart(index) {
-        if (cart[index] && cart[index] > 0) {
-            cart[index]--; // በአንድ ጊዜ 1 ይቀንሳል
-            if (cart[index] === 0) {
-                delete cart[index];
-            }
-            updateCartUI();
-            updateCardBadges(); // የካርድ ቆጣሪውን ያዘምናል
+function openCheckout() {
+    const summary = document.getElementById('orderSummary');
+    let total = 0;
+    summary.innerHTML = cart.map((item, idx) => {
+        total += item.finalPrice;
+        return `<div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <span>${item.emoji} ${item.name} (${item.pickedQty})</span>
+            <span>${item.finalPrice} ብር <button onclick="removeItem(${idx})" style="color:red; border:none; background:none;">X</button></span>
+        </div>`;
+    }).join('');
+    summary.innerHTML += `<hr><b>ጠቅላላ፡ ${total + (cart.length > 0 ? 150 : 0)} ብር (Delivery Incl.)</b>`;
+    document.getElementById('checkoutModal').style.display = 'flex';
+}
 
-            // ሞዳሉ ክፍት ከሆነ ያድሰዋል
-            if (document.getElementById('checkoutModal').style.display === 'flex') {
-                openCheckout(); 
-            }
-        }
-    }
+function removeItem(idx) {
+    cart.splice(idx, 1);
+    if(cart.length === 0) document.getElementById('cartBar').style.display = 'none';
+    openCheckout();
+}
+
+function closeQty() { document.getElementById('qtyModal').style.display = 'none'; }
+function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
+
+function sendOrder() {
+    const name = document.getElementById('custName').value;
+    const phone = document.getElementById('custPhone').value;
+    const extra = document.getElementById('extraItems').value;
+    if(!name || !phone) { alert("እባክዎ ስም እና ስልክ ያስገቡ"); return; }
     
-    function clearCart() {
-        if (Object.keys(cart).length === 0) {
-            alert("ቅርጫቱ አሁንም ባዶ ነው።");
-            return;
-        }
-        
-        if (confirm("ቅርጫትዎን ሙሉ በሙሉ ባዶ ለማድረግ እርግጠኛ ነዎት?")) {
-            cart = {};
-            updateCartUI();
-            updateCardBadges(); // የካርድ ቆጣሪውን ያዘምናል
-            alert("✅ ሁሉም የተመረጡ ዕቃዎች ከቅርጫት ወጥተዋል!");
-        }
-    }
+    let msg = `🛒 *አዲስ ትዕዛዝ*%0A👤 ስም: ${name}%0A📞 ስልክ: ${phone}%0A%0A`;
+    cart.forEach(i => msg += `• ${i.name} (${i.pickedQty}) - ${i.finalPrice}br%0A`);
+    if(extra) msg += `%0A📝 ተጨማሪ፡ ${extra}`;
+    
+    const url = `https://api.telegram.org/bot8135448998:AAFWMpD6PwlHPOUPIIDj9Git9SVWZfdex9A/sendMessage?chat_id=5229826685&text=${encodeURIComponent(msg)}&parse_mode=Markdown`;
+    fetch(url).then(() => { alert("ትዕዛዝዎ ተልኳል!"); cart = []; location.reload(); });
+}
 
-
-    function updateCartUI() {
-        let count = 0;
-        for (let i in cart) {
-            count += cart[i];
-        }
-        
-        if (count > 0) {
-            document.getElementById('cartBar').style.display = 'flex';
-        } else {
-            document.getElementById('cartBar').style.display = 'none';
-        }
-    }
-
-    // ትዕዛዝ ማረጋገጫን የሚከፍት ተግባር
-    function openCheckout() {
-        if (Object.keys(cart).length === 0) {
-            alert("ቅርጫትዎ ባዶ ነው።");
-            return;
-        }
-        
-        let listHtml = "<h3>የተመረጡ ዕቃዎች ዝርዝር:</h3><ul style='list-style: none; padding: 0;'>";
-        let subtotal = 0;
-        for (let i in cart) {
-            let p = products[i];
-            let cost = p.price * cart[i];
-            subtotal += cost;
-            // እዚህ ላይ removeFromCart(i) ተብሎ መጠራቱ 1 ብቻ እንደሚቀንስ ያረጋግጣል
-            listHtml += `<li style='margin-bottom: 8px;'>
-                ${p.name} (x${cart[i]}) - <b>${cost} ብር</b> 
-                <button class="remove-btn" onclick="removeFromCart(${i})">አትምረጥ</button>
-            </li>`;
-        }
-        listHtml += `</ul><hr style='margin: 10px 0;'>`;
-        listHtml += `<p>የዕቃዎች ድምር: <b>${subtotal} ብር</b></p>`;
-        listHtml += `<p>የዲሊቨሪ (መላኪያ): <b>${deliveryFee} ብር</b></p>`;
-        listHtml += `<h3 style="color:#2E7D32">ጠቅላላ ክፍያ: ${subtotal + deliveryFee} ብር</h3>`;
-        
-        document.getElementById('orderSummary').innerHTML = listHtml;
-        document.getElementById('checkoutModal').style.display = 'flex';
-    }
-
-    function closeCheckout() {
-        document.getElementById('checkoutModal').style.display = 'none';
-    }
-
-    function openRequestModal() {
-        document.getElementById('requestModal').style.display = 'flex';
-    }
-
-    function closeRequestModal() {
-        document.getElementById('requestModal').style.display = 'none';
-    }
-
-    // *** የ sendOrder ተግባር (GPS ይልካል) ***
-    function sendOrder() {
-        const name = document.getElementById('fullName').value;
-        const phone = document.getElementById('phone').value;
-        const address = document.getElementById('address').value;
-
-        if(!name || !phone || !address) {
-            alert("እባክዎ ሁሉንም የግል መረጃዎች በትክክል ያስገቡ!");
-            return;
-        }
-        
-        // 1. የትዕዛዝ ስሌት
-        let cartItems = [];
-        let subtotal = 0;
-        for (let i in cart) {
-            let p = products[i];
-            let cost = p.price * cart[i];
-            subtotal += cost;
-            cartItems.push({
-                name: p.name,
-                qty: cart[i],
-                cost: cost,
-                emoji: p.emoji
-            });
-        }
-        
-        const total = subtotal + deliveryFee;
-
-        // 2. ለ Telegram የሚላከውን መልዕክት ይፍጠሩ
-        let message = `🛒 *አዲስ ዋና ትዕዛዝ (Gebeya)* %0A`;
-        message += `------------------%0A`;
-        message += `👤 ስም: ${name} %0A`;
-        message += `📞 ስልክ: ${phone} %0A`;
-        
-        if (savedLocation) {
-            // የቴሌግራም ካርታ ሊንክ ይፈጥራል (የኮዱን ግልጽነት ለመጠበቅ ቋሚውን ኮድ ትተናል)
-            const mapLink = `https://www.google.com/maps/search/?api=1&query=$${savedLocation.lat},${savedLocation.lon}`;
-            message += `🗺️ *ትክክለኛ ቦታ* (GPS): %0A[ቦታውን በካርታ ላይ እይ](${mapLink})%0A`;
-            message += ` (Lat: ${savedLocation.lat}, Lon: ${savedLocation.lon}) %0A`;
-        }
-        
-        message += `📍 አድራሻ: ${address} %0A`; 
-        message += `------------------%0A`;
-        
-        cartItems.forEach(item => {
-             message += `${item.emoji} ${item.name} (x${item.qty}) - ${item.cost} ብር %0A`;
-        });
-        
-        message += `------------------%0A`;
-        message += `🚚 ዲሊቨሪ: ${deliveryFee} ብር %0A`; 
-        message += `💰 *ጠቅላላ ክፍያ: ${total} ብር* %0A`; 
-        message += `------------------%0A`;
-        message += `**ክፍያ በ CBE (አካውንት: ${MY_CBE_ACCOUNT})**%0A`;
-        message += `**ስልክ (Shop): ${MY_PHONE_NUMBER}**`;
-
-
-        // 3. መልእክቱን ወደ ቴሌግራም ይላኩ
-        const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
-
-        const btn = document.querySelector('#checkoutModal .confirm-btn');
-        btn.innerText = "⏳ በመላክ ላይ...";
-        btn.disabled = true;
-
-        fetch(telegramUrl)
-        .then(response => {
-             if (response.ok) {
-                alert("✅ ትዕዛዝዎ ተልኳል! ክፍያውን ሲያጠናቅቁ ወዲያውኑ እናገኝዎታለን።");
-                cart = {}; 
-                closeCheckout();
-                updateCartUI();
-                updateCardBadges(); // ካርዶችን ወደ 0 ይመልሳል
-                document.getElementById('cartBar').style.display = 'none';
-                
-                window.location.href = `https://t.me/${YOUR_TELEGRAM_USERNAME.replace('@', '')}`; 
-            } else {
-                console.error("Telegram API Error Response:", response.status, response.statusText);
-                alert("⚠️ ትዕዛዙን መላክ አልተቻለም።");
-            }
-            btn.innerText = "✅ አረጋግጥና ላክ";
-            btn.disabled = false;
-        })
-        .catch(error => {
-            console.error("Fetch Error:", error);
-            alert("⚠️ የኔትወርክ ችግር ተፈጥሯል! እባክዎ ኢንተርኔትዎን ያረጋግጡ ወይም ይደውሉ።");
-            btn.innerText = "✅ አረጋግጥና ላክ";
-            btn.disabled = false;
-        });
-    }
-
-    // የመጠየቂያ መልእክት ወደ ቴሌግራም መላክ
-    function sendRequest() {
-        const text = document.getElementById('requestText').value;
-        const phone = document.getElementById('requestPhone').value;
-
-        if (!text || !phone) {
-            alert("እባክዎ የሚፈልጉትን ዕቃ እና ስልክ ቁጥር ያስገቡ!");
-            return;
-        }
-
-        let message = `❓ *አዲስ የመጠየቂያ መልእክት (ያልተዘረዘረ)* %0A`;
-        message += `------------------%0A`;
-        message += `📞 ስልክ: ${phone} %0A`;
-        message += `📝 ጥያቄ: ${text} %0A`;
-
-        const btn = document.querySelector('#requestModal .confirm-btn');
-        btn.innerText = "⏳ በመላክ ላይ...";
-        btn.disabled = true;
-
-        fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${message}&parse_mode=Markdown`)
-            .then(response => {
-                if(response.ok) {
-                    alert("✅ ጥያቄዎ ደርሶናል! በቅርቡ እንደውላለን።");
-                    document.getElementById('requestText').value = '';
-                    document.getElementById('requestPhone').value = '';
-                    closeRequestModal();
-                } else {
-                    alert("⚠️ ጥያቄዎን መላክ አልተቻለም።");
-                }
-                btn.innerText = "ላክልኝ";
-                btn.disabled = false;
-            })
-            .catch(error => {
-                alert("⚠️ ችግር ተፈጥሯል!");
-                btn.innerText = "ላክልኝ";
-                btn.disabled = false;
-            });
-    }
-
+renderShop();
+renderRecipes();
 </script>
-
 </body>
 </html>
