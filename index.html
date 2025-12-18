@@ -131,8 +131,8 @@
 
 <script>
     const BOT_USERNAME = "GebeyaOrderBotbot"; 
-    const DELIVERY_FEE = 100; // መላኪያ 100 ብር
-    const DISCOUNT_AMOUNT = 50; // ቅናሽ 50 ብር
+    const DELIVERY_FEE = 100; // ተቀንሷል
+    const DISCOUNT_AMOUNT = 50; // አዲስ ቅናሽ
 
     let cart = [];
     let currentPendingItem = null;
@@ -324,9 +324,14 @@
         if (cart.length === 0) return;
         let html = "<ul style='padding:0; list-style:none;'>"; let total = 0;
         cart.forEach(item => { html += `<li style='padding:8px 0; border-bottom:1px solid #eee;'>${item.emoji} ${item.name} (${item.qtyLabel}) - <b>${item.totalCost.toFixed(2)} ብር</b></li>`; total += item.totalCost; });
+        
+        // መላኪያ እና ቅናሽ
         html += `<li style='padding:8px 0; color:var(--primary);'>🚚 መላኪያ (Delivery) - <b>${DELIVERY_FEE} ብር</b></li>`;
-        html += `<li style='padding:8px 0; color:#EF5350;'>🎁 ቅናሽ (Discount) - <b>-${DISCOUNT_AMOUNT} ብር</b></li>`;
-        html += `</ul><h3 style='color:var(--accent)'>ጠቅላላ ሂሳብ: ${(total + DELIVERY_FEE - DISCOUNT_AMOUNT).toFixed(2)} ብር</h3>`;
+        html += `<li style='padding:8px 0; color:red;'>🎁 ልዩ ቅናሽ (Discount) - <b>- ${DISCOUNT_AMOUNT} ብር</b></li>`;
+        
+        const finalTotal = total + DELIVERY_FEE - DISCOUNT_AMOUNT;
+        html += `</ul><h3 style='color:var(--accent)'>ጠቅላላ ሂሳብ: ${(finalTotal).toFixed(2)} ብር</h3>`;
+        
         document.getElementById('orderSummary').innerHTML = html;
         document.getElementById('checkoutModal').style.display = 'flex';
     }
@@ -355,14 +360,15 @@
             gpsLink = `https://www.google.com/maps?q=${savedLocation.lat},${savedLocation.lon}`;
         }
 
-        const message = `/order\n` +
+        const message = `🛒 *አዲስ ትዕዛዝ (Bishe Gebeya)*\n\n` +
+                        `/order\n` +
                         `👤 ስም: ${name}\n` +
                         `📞 ስልክ: ${phone}\n` +
                         `📍 አድራሻ: ${address}\n` +
                         `🌐 መገኛ: ${gpsLink}\n\n` +
-                        `--- የታዘዙ ዕቃዎች ---\n${itemsList}\n` +
+                        `--- ዕቃዎች ---\n${itemsList}\n` +
                         `🚚 መላኪያ: ${DELIVERY_FEE} ብር\n` +
-                        `🎁 ቅናሽ: -${DISCOUNT_AMOUNT} ብር\n` +
+                        `🎁 ቅናሽ: ${DISCOUNT_AMOUNT} ብር\n` +
                         `💰 *ጠቅላላ ድምር: ${finalTotal} ብር*`;
 
         const telegramUrl = `https://t.me/${BOT_USERNAME}?text=${encodeURIComponent(message)}`;
