@@ -131,7 +131,8 @@
 
 <script>
     const BOT_USERNAME = "GebeyaOrderBotbot"; 
-    const DELIVERY_FEE = 150;
+    const DELIVERY_FEE = 100; // መላኪያ ወደ 100 ዝቅ ብሏል
+    const DISCOUNT_AMOUNT = 50; // የቅናሽ መጠን
 
     let cart = [];
     let currentPendingItem = null;
@@ -324,7 +325,8 @@
         let html = "<ul style='padding:0; list-style:none;'>"; let total = 0;
         cart.forEach(item => { html += `<li style='padding:8px 0; border-bottom:1px solid #eee;'>${item.emoji} ${item.name} (${item.qtyLabel}) - <b>${item.totalCost.toFixed(2)} ብር</b></li>`; total += item.totalCost; });
         html += `<li style='padding:8px 0; color:var(--primary);'>🚚 መላኪያ (Delivery) - <b>${DELIVERY_FEE} ብር</b></li>`;
-        html += `</ul><h3 style='color:var(--accent)'>ጠቅላላ ሂሳብ: ${(total + DELIVERY_FEE).toFixed(2)} ብር</h3>`;
+        html += `<li style='padding:8px 0; color:#EF5350;'>🎁 ቅናሽ (Discount) - <b>-${DISCOUNT_AMOUNT} ብር</b></li>`;
+        html += `</ul><h3 style='color:var(--accent)'>ጠቅላላ ሂሳብ: ${(total + DELIVERY_FEE - DISCOUNT_AMOUNT).toFixed(2)} ብር</h3>`;
         document.getElementById('orderSummary').innerHTML = html;
         document.getElementById('checkoutModal').style.display = 'flex';
     }
@@ -346,7 +348,7 @@
             total += i.totalCost; 
         });
 
-        const finalTotal = (total + DELIVERY_FEE).toFixed(2);
+        const finalTotal = (total + DELIVERY_FEE - DISCOUNT_AMOUNT).toFixed(2);
         
         let gpsLink = "አልተገኘም";
         if (savedLocation) {
@@ -361,6 +363,7 @@
                         `🌐 መገኛ: ${gpsLink}\n\n` +
                         `--- ዕቃዎች ---\n${itemsList}\n` +
                         `🚚 መላኪያ: ${DELIVERY_FEE} ብር\n` +
+                        `🎁 ቅናሽ: -${DISCOUNT_AMOUNT} ብር\n` +
                         `💰 *ጠቅላላ ድምር: ${finalTotal} ብር*`;
 
         const telegramUrl = `https://t.me/${BOT_USERNAME}?text=${encodeURIComponent(message)}`;
