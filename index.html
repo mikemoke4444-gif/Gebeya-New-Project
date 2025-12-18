@@ -131,8 +131,8 @@
 
 <script>
     const BOT_USERNAME = "GebeyaOrderBotbot"; 
-    const DELIVERY_FEE = 100; // መላኪያ ወደ 100 ዝቅ ብሏል
-    const DISCOUNT_AMOUNT = 50; // የቅናሽ መጠን
+    const DELIVERY_FEE = 100; // መላኪያ 100 ብር
+    const DISCOUNT_AMOUNT = 50; // ቅናሽ 50 ብር
 
     let cart = [];
     let currentPendingItem = null;
@@ -355,13 +355,12 @@
             gpsLink = `https://www.google.com/maps?q=${savedLocation.lat},${savedLocation.lon}`;
         }
 
-        const message = `🛒 *አዲስ ትዕዛዝ (Bishe Gebeya)*\n\n` +
-                        `/order\n` +
+        const message = `/order\n` +
                         `👤 ስም: ${name}\n` +
                         `📞 ስልክ: ${phone}\n` +
                         `📍 አድራሻ: ${address}\n` +
                         `🌐 መገኛ: ${gpsLink}\n\n` +
-                        `--- ዕቃዎች ---\n${itemsList}\n` +
+                        `--- የታዘዙ ዕቃዎች ---\n${itemsList}\n` +
                         `🚚 መላኪያ: ${DELIVERY_FEE} ብር\n` +
                         `🎁 ቅናሽ: -${DISCOUNT_AMOUNT} ብር\n` +
                         `💰 *ጠቅላላ ድምር: ${finalTotal} ብር*`;
