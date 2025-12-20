@@ -131,23 +131,23 @@
 
 <script>
     const BOT_USERNAME = "GebeyaOrderBotbot"; 
-    const DELIVERY_FEE = 100; // ተቀንሷል
-    const DISCOUNT_AMOUNT = 50; // አዲስ ቅናሽ
+    const DELIVERY_FEE = 100;
+    const DISCOUNT_AMOUNT = 50;
 
     let cart = [];
     let currentPendingItem = null;
     let savedLocation = null;
 
     window.onload = function() {
-        requestLocation();
+        startLocationWatcher();
         renderProducts();
         renderRecipes();
     };
 
-    function requestLocation() {
+    function startLocationWatcher() {
         const statusDiv = document.getElementById('locationStatus');
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
+            navigator.geolocation.watchPosition(
                 (position) => {
                     savedLocation = { lat: position.coords.latitude, lon: position.coords.longitude };
                     statusDiv.textContent = "✅ ትክክለኛ የካርታ ቦታዎ ተገኝቷል!";
@@ -155,10 +155,11 @@
                     statusDiv.style.color = "#2E7D32";
                 },
                 (error) => {
-                    statusDiv.textContent = "⚠️ የካርታ ቦታ ፈቃድ አልተገኘም። እባክዎ አድራሻዎን በጽሁፍ ይጥቀሱ።";
+                    statusDiv.textContent = "⚠️ የካርታ ቦታ አልተገኘም። አድራሻዎን በጽሁፍ ይጥቀሱ።";
                     statusDiv.style.backgroundColor = "#FFCDD2";
                     statusDiv.style.color = "#C62828";
-                }
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
             );
         }
     }
@@ -195,7 +196,7 @@
         { cat: "አትክልቶች", name: "ቆስጣ", price: 50, unit: "ጥቅል", emoji: "🌿" },
         { cat: "አትክልቶች", name: "ሰላጣ", price: 50, unit: "ጥቅል", emoji: "🥗" },
         { cat: "አትክልቶች", name: "ጎመን", price: 50, unit: "ጥቅል", emoji: "🥬" },
-        { cat: "ፍራፍሬ", name: "ፓፓያ", price: 100, unit: "ኪሎ", emoji: "🥭" },
+        { cat: "ፍራፍሬ", name: "ፓப்பாያ", price: 100, unit: "ኪሎ", emoji: "🥭" },
         { cat: "ፍራፍሬ", name: "ሐብሐብ", price: 80, unit: "ኪሎ", emoji: "🍉" },
         { cat: "ፍራፍሬ", name: "አቮካዶ", price: 130, unit: "ኪሎ", emoji: "🥑" },
         { cat: "ፍራፍሬ", name: "ማንጎ", price: 150, unit: "ኪሎ", emoji: "🥭" },
@@ -325,7 +326,6 @@
         let html = "<ul style='padding:0; list-style:none;'>"; let total = 0;
         cart.forEach(item => { html += `<li style='padding:8px 0; border-bottom:1px solid #eee;'>${item.emoji} ${item.name} (${item.qtyLabel}) - <b>${item.totalCost.toFixed(2)} ብር</b></li>`; total += item.totalCost; });
         
-        // መላኪያ እና ቅናሽ
         html += `<li style='padding:8px 0; color:var(--primary);'>🚚 መላኪያ (Delivery) - <b>${DELIVERY_FEE} ብር</b></li>`;
         html += `<li style='padding:8px 0; color:red;'>🎁 ልዩ ቅናሽ (Discount) - <b>- ${DISCOUNT_AMOUNT} ብር</b></li>`;
         
@@ -337,9 +337,9 @@
     }
 
     function sendOrder() {
-        const name = document.getElementById('fullName').value;
-        const phone = document.getElementById('phone').value;
-        const address = document.getElementById('address').value;
+        const name = document.getElementById('fullName').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const address = document.getElementById('address').value.trim();
 
         if(!name || !phone) {
             alert("እባክዎ ስም እና ስልክ በትክክል ይሙሉ!");
@@ -355,8 +355,8 @@
 
         const finalTotal = (total + DELIVERY_FEE - DISCOUNT_AMOUNT).toFixed(2);
         
-        let gpsLink = "አልተገኘም";
-        if (savedLocation) {
+        let gpsLink = "አልተገኘም (GPS ፍቃድ አላገኘሁም)";
+        if (savedLocation && savedLocation.lat) {
             gpsLink = `https://www.google.com/maps?q=${savedLocation.lat},${savedLocation.lon}`;
         }
 
@@ -365,7 +365,7 @@
                         `👤 ስም: ${name}\n` +
                         `📞 ስልክ: ${phone}\n` +
                         `📍 አድራሻ: ${address}\n` +
-                        `🌐 መገኛ: ${gpsLink}\n\n` +
+                        `🌐 መገኛ (Google Maps): ${gpsLink}\n\n` +
                         `--- ዕቃዎች ---\n${itemsList}\n` +
                         `🚚 መላኪያ: ${DELIVERY_FEE} ብር\n` +
                         `🎁 ቅናሽ: ${DISCOUNT_AMOUNT} ብር\n` +
