@@ -89,7 +89,6 @@
 
 <div class="tabs">
     <button class="tab-btn active" id="tab-gebeya" onclick="showPage('gebeya')">🛒 ገበያ</button>
-    <button class="tab-btn" id="tab-muya" onclick="showPage('muya')">👩‍🍳 የሙያ ገጽ</button>
 </div>
 
 <div id="locationStatus">📍 የአካባቢ መረጃዎን በመጠየቅ ላይ...</div>
@@ -132,7 +131,6 @@
 <script>
     const BOT_USERNAME = "GebeyaOrderBotbot"; 
     const DELIVERY_FEE = 100;
-    const DISCOUNT_AMOUNT = 50;
 
     let cart = [];
     let currentPendingItem = null;
@@ -141,7 +139,6 @@
     window.onload = function() {
         startLocationWatcher();
         renderProducts();
-        renderRecipes();
     };
 
     function startLocationWatcher() {
@@ -242,20 +239,7 @@
         { cat: "ስጋ", name: "ጎድን", price: 600, unit: "ኪሎ", emoji: "🦴" }
     ];
 
-    const recipes = [
-        { name: "ምስር (Misir)", items: ["ምስር ክክ", "ቀይ ሽንኩርት", "በርበሬ የተፈጨ"], steps: "1. ሽንኩርት ማቁላላት። 2. በርበሬ ጨምሮ በደንብ ማብሰል። 3. ምስሩን ጨምሮ ውሃ በመጠኑ በማድረግ ማብሰል።" },
-        { name: "ድንች (Dinich)", items: ["ድንች", "ቀይ ሽንኩርት", "ቃሪያ"], steps: "1. ድንቹን መክተፍና ማጠብ። 2. ሽንኩርት አቁላልቶ ድንቹን መጨመር። 3. ቃሪያ መጨመር።" },
-        { name: "ሽሮ (Shiro)", items: ["ሚጥን ሽሮ", "ቀይ ሽንኩርት", "ቲማቲም"], steps: "1. ሽንኩርትና ቲማቲም ማቁላላት። 2. ሽሮውን በውሃ በጥብጦ መጨመር። 3. ተንተክትኮ እስኪበስል መጠበቅ።" },
-        { name: "ሰላጣ (Salata)", items: ["ሰላጣ", "ቲማቲም", "ቃሪያ", "ቀይ ሽንኩርት"], steps: "1. ሰላጣውን መክተፍ። 2. ሽንኩርትና ቲማቲም ቀላቅሎ በሎሚና ዘይት ማቅረብ።" },
-        { name: "ቆስጣ (Qosta)", items: ["ቆስጣ", "ነጭ ሽንኩርት", "ቀይ ሽንኩርት"], steps: "1. ቆስጣውን መክተፍና ማብሰል። 2. በሽንኩርትና ነጭ ሽንኩርት ማቁላላት።" },
-        { name: "ጥብስ (Tibs)", items: ["ጥሬ ስጋ", "ቀይ ሽንኩርት", "ቃሪያ", "ነጭ ሽንኩርት"], steps: "1. ስጋውን መክተፍ። 2. በሽንኩርትና ነጭ ሽንኩርት በደንብ ማቁላላት። 3. መጨረሻ ላይ ቃሪያ መጨመር።" },
-        { name: "ቅቅል (Kikil)", items: ["ጎድን", "ዝንጅብል", "ነጭ ሽንኩርት"], steps: "1. ስጋውን መክተፍ። 2. ከቅመማ ቅመሞች ጋር በውሃ በደንብ ማብሰል።" },
-        { name: "ጥቅል ጎመን (Tikil Gomen)", items: ["ጥቅል ጎመን", "ካሮት", "ድንች"], steps: "1. ሁሉንም መክተፍ። 2. ሽንኩርት አቁላልቶ አንድ ላይ ማብሰል።" },
-        { name: "ምስር በድንች (Misir be Dinich)", items: ["ምስር ክክ", "ድንች", "ቀይ ሽንኩርት"], steps: "1. ምስርና ድንች አብሮ ማብሰል። 2. ሽንኩርትና በርበሬ ጨምሮ በደንብ ማቁላላት።" },
-        { name: "ጎመን በስጋ (Gomen be Siga)", items: ["ጎመን", "ጥሬ ስጋ", "ቀይ ሽንኩርት"], steps: "1. ጎመኑን ለብቻ ማብሰል። 2. ስጋውን በሽንኩርት አቁላልቶ ጎመኑን መጨመር።" },
-        { name: "ጎመን (Gomen)", items: ["ጎመን", "ነጭ ሽንኩርት", "ቀይ ሽንኩርት"], steps: "1. ጎመኑን ማጠብና መክተፍ። 2. በሽንኩርትና ነጭ ሽንኩርት አቁላልቶ ማብሰል።" }
-    ];
-
+   
     function renderProducts() {
         const container = document.getElementById('productSections');
         const categories = ["አትክልቶች", "ፍራፍሬ", "ጥራጥሬና ባልቲና", "ስጋ"];
@@ -274,18 +258,6 @@
         });
     }
 
-    function renderRecipes() {
-        const list = document.getElementById('recipeList');
-        list.innerHTML = "";
-        recipes.forEach(r => {
-            let cost = 0;
-            r.items.forEach(itemName => {
-                const p = products.find(prod => prod.name === itemName);
-                if(p) cost += p.price;
-            });
-            list.innerHTML += `<div class="recipe-card"><div style="font-size: 20px; font-weight: bold; color:var(--primary)">${r.name}</div><div class="recipe-steps"><b>አሰራር:</b> ${r.steps}</div><div class="recipe-price">ግምታዊ ዋጋ: ~${cost.toFixed(2)} ብር</div></div>`;
-        });
-    }
 
     function handleItemClick(idx) {
         const product = products[idx];
@@ -327,9 +299,8 @@
         cart.forEach(item => { html += `<li style='padding:8px 0; border-bottom:1px solid #eee;'>${item.emoji} ${item.name} (${item.qtyLabel}) - <b>${item.totalCost.toFixed(2)} ብር</b></li>`; total += item.totalCost; });
         
         html += `<li style='padding:8px 0; color:var(--primary);'>🚚 መላኪያ (Delivery) - <b>${DELIVERY_FEE} ብር</b></li>`;
-        html += `<li style='padding:8px 0; color:red;'>🎁 ልዩ ቅናሽ (Discount) - <b>- ${DISCOUNT_AMOUNT} ብር</b></li>`;
         
-        const finalTotal = total + DELIVERY_FEE - DISCOUNT_AMOUNT;
+        const finalTotal = total + DELIVERY_FEE ;
         html += `</ul><h3 style='color:var(--accent)'>ጠቅላላ ሂሳብ: ${(finalTotal).toFixed(2)} ብር</h3>`;
         
         document.getElementById('orderSummary').innerHTML = html;
